@@ -68,7 +68,7 @@
     if (!(window.crypto && crypto.subtle)) throw new Error('Secure crypto is unavailable.');
     const key = await crypto.subtle.importKey('raw', te.encode(String(password)), 'PBKDF2', false, ['deriveBits']);
     const bits = await crypto.subtle.deriveBits(
-      { name: 'PBKDF2', salt: hexToBytes(saltHex), iterations: 120000, hash: 'SHA-256' },
+      { name: 'PBKDF2', salt: hexToBytes(saltHex), iterations: 600000, hash: 'SHA-256' },
       key,
       256,
     );
@@ -84,7 +84,23 @@
   }
 
   function normalizeUsername(name) {
-    return (String(name || '').replace(/\s+/g, ' ').trim().slice(0, 64)) || 'You';
+    const normalized = String(name || '')
+      .replace(/[^a-zA-Z0-9 _.-]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 64);
+    return normalized.length >= 2 ? normalized : 'You';
+  }
+
+  function passwordIsStrong(password) {
+    const value = String(password || '');
+    return (
+      value.length >= 8 &&
+      /[a-z]/.test(value) &&
+      /[A-Z]/.test(value) &&
+      /[0-9]/.test(value) &&
+      /[^A-Za-z0-9]/.test(value)
+    );
   }
 
   async function createToken(payload, expiresInSeconds = 60 * 60 * 24 * 7) {
@@ -165,7 +181,7 @@
     let user = users.find((u) => u.email === cleanEmail);
 
     if (!user) {
-      if (!password || String(password).length < 8) throw new Error('Set a password with at least 8 characters.');
+      if (!passwordIsStrong(password)) throw new Error('Use at least 8 chars with upper, lower, number, and symbol.');
       user = {
         id: secureRandomId('acct'),
         email: cleanEmail,
@@ -181,7 +197,10 @@
       user.username = cleanUsername;
       user.updatedAt = now;
       user.passwordSalt = user.passwordSalt || randomHex(16);
-      if (password) user.passwordHash = await hashPassword(String(password), user.passwordSalt);
+      if (password) {
+        if (!passwordIsStrong(password)) throw new Error('Use at least 8 chars with upper, lower, number, and symbol.');
+        user.passwordHash = await hashPassword(String(password), user.passwordSalt);
+      }
     }
 
     saveUsers(users);

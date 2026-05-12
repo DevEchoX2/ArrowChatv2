@@ -8,7 +8,8 @@ function savePrefs(prefs) {
   try {
     localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
     return true;
-  } catch {
+  } catch (err) {
+    console.warn('Failed to save preferences.', err);
     return false;
   }
 }
@@ -146,7 +147,7 @@ document.getElementById('save-account').addEventListener('click', async () => {
     document.getElementById('password').value = '';
     notice.textContent = 'Account saved. JWT session updated.';
   } catch (err) {
-    notice.textContent = err && err.message ? err.message : 'Could not save account.';
+    notice.textContent = err?.message || 'Could not save account.';
   }
 
   setTimeout(() => { notice.textContent = ''; }, 2600);
