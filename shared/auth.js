@@ -5,10 +5,8 @@
 
   const te = new TextEncoder();
   const td = new TextDecoder();
-  const runtimeScope = (typeof window !== 'undefined' && window)
-    || (typeof self !== 'undefined' && self)
-    || globalThis;
-  const webCrypto = runtimeScope.crypto || runtimeScope.msCrypto || globalThis.crypto || null;
+  const runtimeScope = typeof globalThis !== 'undefined' ? globalThis : {};
+  const webCrypto = runtimeScope.crypto || runtimeScope.msCrypto || null;
   const subtleCrypto = webCrypto && (webCrypto.subtle || webCrypto.webkitSubtle);
 
   function secureCryptoError() {
