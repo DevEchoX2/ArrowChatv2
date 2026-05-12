@@ -9,13 +9,19 @@
   const webCrypto = runtimeScope.crypto || runtimeScope.msCrypto || null;
   const subtleCrypto = webCrypto && (webCrypto.subtle || webCrypto.webkitSubtle);
   const SECURE_CRYPTO_UNAVAILABLE_MESSAGE = 'Secure crypto is unavailable in this runtime. Use a secure browser context (HTTPS or localhost).';
+  const SECURE_CRYPTO_UNAVAILABLE_CODE = 'ARROWCHAT_SECURE_CRYPTO_UNAVAILABLE';
 
   function secureCryptoError() {
-    return new Error(SECURE_CRYPTO_UNAVAILABLE_MESSAGE);
+    const err = new Error(SECURE_CRYPTO_UNAVAILABLE_MESSAGE);
+    err.code = SECURE_CRYPTO_UNAVAILABLE_CODE;
+    return err;
   }
 
   function isSecureCryptoUnavailableError(err) {
-    return err && typeof err.message === 'string' && err.message === SECURE_CRYPTO_UNAVAILABLE_MESSAGE;
+    return !!(err && (
+      err.code === SECURE_CRYPTO_UNAVAILABLE_CODE
+      || (typeof err.message === 'string' && err.message === SECURE_CRYPTO_UNAVAILABLE_MESSAGE)
+    ));
   }
 
   function randomHex(bytesLen) {
