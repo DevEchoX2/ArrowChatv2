@@ -196,17 +196,6 @@
       font-size: 1rem;
     }
 
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
   </style>
 </head>
 <body>
@@ -221,7 +210,7 @@
         <li>📋 Rules</li>
       </ul>
       <p class="section-title">Direct Messages</p>
-      <button class="settings" type="button" aria-label="Open settings">⚙️<span class="sr-only">Open settings</span></button>
+      <button class="settings" type="button" aria-label="Open settings">⚙️</button>
     </aside>
 
     <section class="chat">
@@ -240,7 +229,7 @@
           <input type="text" placeholder="Message #World-chat" aria-label="Message #World-chat" />
           <button type="button" aria-label="Upload file">Upload</button>
           <button type="button" aria-label="Insert GIF">GIF</button>
-          <button type="submit">Send</button>
+          <button type="submit" aria-label="Send message">Send</button>
         </div>
       </form>
     </section>
