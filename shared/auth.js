@@ -1,11 +1,29 @@
 (() => {
   const USERS_KEY = 'arrowchat_accounts';
   const TOKEN_KEY = 'arrowchat_auth_token';
-  const SECRET_KEY = 'arrowchat_jwt_secret';
   const ISS = 'arrowchatv2';
 
   const te = new TextEncoder();
   const td = new TextDecoder();
+
+  function randomHex(bytesLen) {
+    if (!(window.crypto && crypto.getRandomValues)) throw new Error('Secure randomness is unavailable.');
+    const bytes = new Uint8Array(bytesLen);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function secureRandomId(prefix = 'id') {
+    return `${prefix}_${Date.now()}_${randomHex(12)}`;
+  }
+
+  const runtimeJwtSecret = (() => {
+    try {
+      return `jwt_secret_${randomHex(24)}`;
+    } catch {
+      return `jwt_secret_${Date.now()}`;
+    }
+  })();
 
   function b64url(bytes) {
     let bin = '';
@@ -35,7 +53,7 @@
 
   async function sign(input) {
     if (!(window.crypto && crypto.subtle)) throw new Error('Secure crypto is unavailable.');
-    const key = await crypto.subtle.importKey('raw', te.encode(getJwtSecret()), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const key = await crypto.subtle.importKey('raw', te.encode(runtimeJwtSecret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
     const sig = await crypto.subtle.sign('HMAC', key, te.encode(input));
     return b64url(new Uint8Array(sig));
   }
@@ -164,17 +182,3 @@
     registerOrUpdateAccount,
   };
 })();
-  function secureRandomId(prefix = 'id') {
-    if (!(window.crypto && crypto.getRandomValues)) throw new Error('Secure randomness is unavailable.');
-    const bytes = new Uint8Array(12);
-    crypto.getRandomValues(bytes);
-    return `${prefix}_${Date.now()}_${Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')}`;
-  }
-
-  function getJwtSecret() {
-    let secret = localStorage.getItem(SECRET_KEY);
-    if (secret) return secret;
-    secret = secureRandomId('jwt_secret');
-    localStorage.setItem(SECRET_KEY, secret);
-    return secret;
-  }
