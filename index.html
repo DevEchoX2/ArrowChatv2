@@ -156,12 +156,15 @@
     }
 
     .messages {
-      display: grid;
-      place-items: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.4rem;
       color: #8d8d95;
       font-size: 0.78rem;
       padding: 1rem;
       text-align: center;
+      overflow-y: auto;
     }
 
     .composer {
@@ -225,18 +228,18 @@
       <header class="chat-header">
         <h1 class="channel">#World-chat</h1>
         <div class="actions">
-          <button type="button">Dashboard</button>
+          <button type="button" aria-label="Navigate to dashboard">Dashboard</button>
           <button type="button" aria-label="Log out">Log out</button>
         </div>
       </header>
-      <div class="messages">
+      <div class="messages" id="messages">
         <p>For V1 support please visit our Discord Server.</p>
       </div>
       <form class="composer" id="composer-form">
         <div class="composer-bar">
-          <input type="text" placeholder="Message #World-chat" aria-label="Message #World-chat" />
-          <button type="button">Upload</button>
-          <button type="button">GIF</button>
+          <input type="text" id="composer-input" placeholder="Message #World-chat" aria-label="Message #World-chat" />
+          <button type="button" aria-label="Upload file">Upload</button>
+          <button type="button" aria-label="Insert GIF">GIF</button>
           <button type="submit" aria-label="Send message">Send</button>
         </div>
       </form>
@@ -249,6 +252,16 @@
   <script>
     document.getElementById("composer-form").addEventListener("submit", (event) => {
       event.preventDefault();
+      const input = document.getElementById("composer-input");
+      const message = input.value.trim();
+      if (!message) {
+        return;
+      }
+      const messages = document.getElementById("messages");
+      const line = document.createElement("p");
+      line.textContent = `You: ${message}`;
+      messages.appendChild(line);
+      input.value = "";
     });
   </script>
 </body>
