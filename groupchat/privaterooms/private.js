@@ -246,7 +246,8 @@ function setParticipantStream(username, stream) {
   if (!el) return;
   const video = el.querySelector('.participant-video');
   if (!video) return;
-  if (stream && stream.getVideoTracks().length > 0 && stream.getVideoTracks()[0].enabled) {
+  const track = stream && stream.getVideoTracks()[0];
+  if (track && track.enabled) {
     video.srcObject = stream;
     video.classList.add('active');
     el.querySelector('.participant-avatar-text').style.display = 'none';
@@ -525,7 +526,7 @@ async function toggleScreenShare() {
   if (!callActive) return;
   if (screenSharing) {
     // Revert to camera video track
-    const camTrack = localStream && localStream.getVideoTracks()[0] || null;
+    const camTrack = (localStream && localStream.getVideoTracks()[0]) || null;
     Object.values(callConnections).forEach(({ call }) => {
       const pc = call.peerConnection;
       if (!pc) return;
