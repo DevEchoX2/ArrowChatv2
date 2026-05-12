@@ -23,7 +23,7 @@ function renderDMList() {
   if (!list) return;
   const friends = loadFriends();
   if (!friends.length) {
-    list.innerHTML = '<div class="nav-item"><i class="fa-solid fa-message"></i> No DMs</div>';
+    list.innerHTML = '<div class="nav-item nav-placeholder"><i class="fa-solid fa-message"></i> No DMs</div>';
     return;
   }
   list.innerHTML = friends.map((f) => {

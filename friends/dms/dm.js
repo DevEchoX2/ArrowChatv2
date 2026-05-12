@@ -1,7 +1,8 @@
 const params = new URLSearchParams(window.location.search);
 const rawDmUser = params.get('user') || 'Friend';
+const MAX_USERNAME_LENGTH = 64;
 function sanitizeDmUser(name) {
-  return (String(name).replace(/[^a-zA-Z0-9 _.-]/g, '').replace(/\s+/g, ' ').trim().slice(0, 64)) || 'Friend';
+  return (String(name).replace(/[^a-zA-Z0-9 _.-]/g, '').replace(/\s+/g, ' ').trim().slice(0, MAX_USERNAME_LENGTH)) || 'Friend';
 }
 const dmUser = sanitizeDmUser(rawDmUser);
 const dmTitle = document.getElementById('dm-title');
@@ -15,7 +16,7 @@ const callBtn = document.getElementById('start-call-btn');
 const privateCallBtn = document.getElementById('start-private-call-btn');
 const endCallBtn = document.getElementById('end-call-btn');
 
-const DM_KEY = `arrowchat_dm_messages_${encodeURIComponent(dmUser.toLowerCase())}`;
+const DM_KEY = `arrowchat_dm_messages_${encodeURIComponent(dmUser)}`;
 let activeCall = null;
 
 dmTitle.textContent = `DM with ${dmUser}`;

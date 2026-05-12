@@ -72,6 +72,7 @@ button { cursor: pointer; }
 .nav-item:hover { background: var(--hover); color: var(--text); }
 .nav-item.active { background: var(--active); color: var(--text); }
 .nav-item i { width: 14px; text-align: center; font-size: 0.78rem; flex-shrink: 0; }
+.nav-placeholder { cursor: default; pointer-events: none; opacity: 0.75; }
 .sidebar-footer {
   padding: 0.6rem 0.7rem;
   border-top: 1px solid var(--border);

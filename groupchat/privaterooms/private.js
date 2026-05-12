@@ -19,6 +19,7 @@ let activeRoomId = null;
 // messages stored per-room in memory
 const roomMessages = {};
 const roomLastAuthor = {};
+// per-room call state: { [roomId]: { type: 'room' } | { type: 'private', target: string } }
 const roomCalls = {};
 
 // TODO: connect socket.io when backend is ready
@@ -159,7 +160,7 @@ privateRoomCallBtn.addEventListener('click', () => {
   if (!room) return;
   const others = room.members.filter((m) => m !== 'You');
   if (!others.length) {
-    showCallNotice('At least one other member is required for a private call.');
+    showCallNotice('Cannot start private call: no other members are available in this room.');
     return;
   }
   const chosen = others[0];
