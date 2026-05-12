@@ -8,9 +8,14 @@
   const runtimeScope = typeof globalThis !== 'undefined' ? globalThis : {};
   const webCrypto = runtimeScope.crypto || runtimeScope.msCrypto || null;
   const subtleCrypto = webCrypto && (webCrypto.subtle || webCrypto.webkitSubtle);
+  const SECURE_CRYPTO_UNAVAILABLE_MESSAGE = 'Secure crypto is unavailable in this runtime. Use a secure browser context (HTTPS or localhost).';
 
   function secureCryptoError() {
-    return new Error('Secure crypto is unavailable in this runtime. Use a secure browser context (HTTPS or localhost).');
+    return new Error(SECURE_CRYPTO_UNAVAILABLE_MESSAGE);
+  }
+
+  function isSecureCryptoUnavailableError(err) {
+    return !!(err && typeof err.message === 'string' && err.message === SECURE_CRYPTO_UNAVAILABLE_MESSAGE);
   }
 
   function randomHex(bytesLen) {
@@ -125,7 +130,13 @@
     const parts = token.split('.');
     if (parts.length !== 3) return null;
     const [h, p, sig] = parts;
-    const expected = await sign(`${h}.${p}`);
+    let expected = null;
+    try {
+      expected = await sign(`${h}.${p}`);
+    } catch (err) {
+      if (isSecureCryptoUnavailableError(err)) return null;
+      throw err;
+    }
     if (sig !== expected) return null;
     const payload = parseJsonSegment(p);
     if (!payload || payload.iss !== ISS) return null;
