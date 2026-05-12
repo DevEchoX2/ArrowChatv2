@@ -15,7 +15,7 @@
   }
 
   function isSecureCryptoUnavailableError(err) {
-    return !!(err && typeof err.message === 'string' && err.message === SECURE_CRYPTO_UNAVAILABLE_MESSAGE);
+    return err && typeof err.message === 'string' && err.message === SECURE_CRYPTO_UNAVAILABLE_MESSAGE;
   }
 
   function randomHex(bytesLen) {
