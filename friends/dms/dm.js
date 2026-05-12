@@ -1,5 +1,5 @@
 const params = new URLSearchParams(window.location.search);
-const dmUser = (params.get('user') || 'Friend').trim();
+const dmUser = ((params.get('user') || 'Friend').replace(/\s+/g, ' ').trim().slice(0, 64)) || 'Friend';
 const dmTitle = document.getElementById('dm-title');
 const form = document.getElementById('composer-form');
 const input = document.getElementById('composer-input');
@@ -11,7 +11,7 @@ const callBtn = document.getElementById('start-call-btn');
 const privateCallBtn = document.getElementById('start-private-call-btn');
 const endCallBtn = document.getElementById('end-call-btn');
 
-const DM_KEY = `arrowchat_dm_messages_${dmUser.toLowerCase()}`;
+const DM_KEY = `arrowchat_dm_messages_${encodeURIComponent(dmUser.toLowerCase())}`;
 let activeCall = null;
 
 dmTitle.textContent = `DM with ${dmUser}`;

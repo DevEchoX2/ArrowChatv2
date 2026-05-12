@@ -53,6 +53,7 @@ const privateRoomCallBtn = document.getElementById('private-room-call-btn');
 const endCallBtn = document.getElementById('end-call-btn');
 const callBanner = document.getElementById('call-banner');
 const callBannerText = document.getElementById('call-banner-text');
+let callNoticeTimer = null;
 
 function selectRoom(id) {
   const rooms = loadRooms();
@@ -110,6 +111,10 @@ function addSystemMessage(roomId, text) {
 }
 
 function renderCallState(room) {
+  if (callNoticeTimer) {
+    clearTimeout(callNoticeTimer);
+    callNoticeTimer = null;
+  }
   const call = roomCalls[room.id];
   if (!call) {
     callBanner.hidden = true;
@@ -122,6 +127,19 @@ function renderCallState(room) {
   callBannerText.textContent = call.type === 'private'
     ? `Private call with ${call.target} is active in ${room.name}.`
     : `Room call is active in ${room.name}.`;
+}
+
+function showCallNotice(text) {
+  if (callNoticeTimer) clearTimeout(callNoticeTimer);
+  callBanner.hidden = false;
+  callBanner.classList.remove('active');
+  callBannerText.textContent = text;
+  callNoticeTimer = setTimeout(() => {
+    if (!activeRoomId || !roomCalls[activeRoomId]) {
+      callBanner.hidden = true;
+      callBannerText.textContent = '';
+    }
+  }, 2800);
 }
 
 roomCallBtn.addEventListener('click', () => {
@@ -141,16 +159,10 @@ privateRoomCallBtn.addEventListener('click', () => {
   if (!room) return;
   const others = room.members.filter((m) => m !== 'You');
   if (!others.length) {
-    alert('Invite at least one other member to start a private call.');
+    showCallNotice('Invite at least one other member to start a private call.');
     return;
   }
-  const pick = prompt(`Private call with who?\nMembers: ${others.join(', ')}`, others[0]);
-  if (!pick) return;
-  const chosen = others.find((name) => name.toLowerCase() === pick.trim().toLowerCase());
-  if (!chosen) {
-    alert('That member is not in this room.');
-    return;
-  }
+  const chosen = others[0];
   roomCalls[activeRoomId] = { type: 'private', target: chosen };
   addSystemMessage(activeRoomId, `You started a private call with ${chosen}.`);
   renderCallState(room);
