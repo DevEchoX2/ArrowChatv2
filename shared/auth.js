@@ -1,7 +1,7 @@
 (() => {
   const USERS_KEY = 'arrowchat_accounts';
   const TOKEN_KEY = 'arrowchat_auth_token';
-  const JWT_SECRET = 'arrowchatv2_jwt_secret_auth';
+  const SECRET_KEY = 'arrowchat_jwt_secret';
   const ISS = 'arrowchatv2';
 
   const te = new TextEncoder();
@@ -34,18 +34,10 @@
   }
 
   async function sign(input) {
-    if (window.crypto && crypto.subtle) {
-      const key = await crypto.subtle.importKey('raw', te.encode(JWT_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-      const sig = await crypto.subtle.sign('HMAC', key, te.encode(input));
-      return b64url(new Uint8Array(sig));
-    }
-    let hash = 2166136261;
-    const raw = `${input}.${JWT_SECRET}`;
-    for (let i = 0; i < raw.length; i += 1) {
-      hash ^= raw.charCodeAt(i);
-      hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
-    }
-    return b64urlText(String(hash >>> 0));
+    if (!(window.crypto && crypto.subtle)) throw new Error('Secure crypto is unavailable.');
+    const key = await crypto.subtle.importKey('raw', te.encode(getJwtSecret()), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sig = await crypto.subtle.sign('HMAC', key, te.encode(input));
+    return b64url(new Uint8Array(sig));
   }
 
   async function hashPassword(password) {
@@ -142,9 +134,9 @@
     let user = users.find((u) => u.email === cleanEmail);
 
     if (!user) {
-      if (!password || String(password).length < 6) throw new Error('Set a password with at least 6 characters.');
+      if (!password || String(password).length < 8) throw new Error('Set a password with at least 8 characters.');
       user = {
-        id: `acct_${now}_${Math.random().toString(36).slice(2, 7)}`,
+        id: secureRandomId('acct'),
         email: cleanEmail,
         username: cleanUsername,
         passwordHash: await hashPassword(String(password)),
@@ -170,6 +162,19 @@
     getCurrentUsername,
     updateSessionProfile,
     registerOrUpdateAccount,
-    JWT_SECRET,
   };
 })();
+  function secureRandomId(prefix = 'id') {
+    if (!(window.crypto && crypto.getRandomValues)) throw new Error('Secure randomness is unavailable.');
+    const bytes = new Uint8Array(12);
+    crypto.getRandomValues(bytes);
+    return `${prefix}_${Date.now()}_${Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')}`;
+  }
+
+  function getJwtSecret() {
+    let secret = localStorage.getItem(SECRET_KEY);
+    if (secret) return secret;
+    secret = secureRandomId('jwt_secret');
+    localStorage.setItem(SECRET_KEY, secret);
+    return secret;
+  }
