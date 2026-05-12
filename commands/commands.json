@@ -1,1 +1,22 @@
-
+{
+  "app": "ArrowChatv2",
+  "theme": "heavenly",
+  "defaultChannel": "World-chat",
+  "commands": [
+    {
+      "key": "join",
+      "usage": "/join World-chat",
+      "group": "rooms"
+    },
+    {
+      "key": "rules",
+      "usage": "/rules",
+      "group": "utility"
+    },
+    {
+      "key": "dm",
+      "usage": "/dm username",
+      "group": "messages"
+    }
+  ]
+}

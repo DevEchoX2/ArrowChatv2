@@ -4,6 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ArrowChatv2 (heavenly)</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    integrity="sha512-SnH5WK+bZxgPHs44uWix+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkR4j8Z+QW9F5YgI5GTbQ2xYt0QYf8Y+N4Vg=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
   <style>
     :root {
       color-scheme: dark;
@@ -13,7 +20,6 @@
       --text: #f3f3f4;
       --muted: #9d9da5;
       --field: #1f1f24;
-      --accent: #5f5dff;
     }
 
     * {
@@ -57,6 +63,17 @@
     .search {
       padding: 0.75rem;
       border-bottom: 1px solid var(--panel-border);
+      position: relative;
+    }
+
+    .search i {
+      position: absolute;
+      top: 50%;
+      left: 1.35rem;
+      transform: translateY(-50%);
+      color: #8f8f99;
+      font-size: 0.8rem;
+      pointer-events: none;
     }
 
     .search input {
@@ -65,7 +82,7 @@
       border: 1px solid #34343c;
       color: var(--text);
       border-radius: 8px;
-      padding: 0.35rem 0.6rem;
+      padding: 0.35rem 0.6rem 0.35rem 1.75rem;
       outline: none;
     }
 
@@ -74,10 +91,6 @@
       padding: 0.8rem 0.55rem;
       display: grid;
       gap: 0.3rem;
-    }
-
-    .nav li {
-      list-style: none;
     }
 
     .nav button {
@@ -90,6 +103,9 @@
       background: transparent;
       border: 0;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     .nav li.active button {
@@ -107,15 +123,18 @@
     }
 
     .settings {
-      font-size: 1rem;
+      font-size: 0.8rem;
       color: #d8d8dd;
       background: #1d1e24;
       border: 1px solid #373744;
       border-radius: 6px;
-      padding: 0.2rem 0.45rem;
+      padding: 0.3rem 0.45rem;
       cursor: pointer;
       margin: auto 0.75rem 0.75rem;
       align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
     }
 
     .sidebar {
@@ -139,6 +158,9 @@
 
     .chat-header .channel {
       font-size: 1.15rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
     }
 
     .actions {
@@ -152,7 +174,10 @@
       color: #efeff2;
       border: 1px solid #373744;
       border-radius: 6px;
-      padding: 0.2rem 0.5rem;
+      padding: 0.25rem 0.55rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
     }
 
     .messages {
@@ -194,10 +219,13 @@
       border: 0;
       background: #2a2b31;
       color: #ececf0;
-      width: 1.5rem;
-      height: 1.5rem;
       border-radius: 4px;
       line-height: 1;
+      padding: 0.35rem 0.45rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.72rem;
     }
 
     .members h2 {
@@ -206,30 +234,48 @@
       text-align: center;
       font-size: 1rem;
     }
-
   </style>
 </head>
 <body>
   <main class="app" aria-label="ArrowChatv2 heavenly chat layout">
     <aside class="sidebar">
       <div class="search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
         <input type="text" placeholder="Search..." aria-label="Search" />
       </div>
       <ul class="nav">
-        <li class="active"><button type="button">👥 Friends</button></li>
-        <li><button type="button">🚫 Blocked Users</button></li>
-        <li><button type="button">📋 Rules</button></li>
+        <li class="active">
+          <button type="button"><i class="fa-solid fa-user-group" aria-hidden="true"></i>Friends</button>
+        </li>
+        <li>
+          <button type="button"><i class="fa-solid fa-user-slash" aria-hidden="true"></i>Blocked Users</button>
+        </li>
+        <li>
+          <button type="button"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>Rules</button>
+        </li>
       </ul>
       <p class="section-title">Direct Messages</p>
-      <button class="settings" type="button" aria-label="Open settings">⚙️</button>
+      <button class="settings" type="button" aria-label="Open settings">
+        <i data-lucide="settings" aria-hidden="true"></i>
+        Settings
+      </button>
     </aside>
 
     <section class="chat">
       <header class="chat-header">
-        <h1 class="channel">#World-chat</h1>
+        <h1 class="channel">
+          <i class="fa-solid fa-hashtag" aria-hidden="true"></i>
+          World-chat
+        </h1>
         <div class="actions">
-          <button type="button" aria-label="Navigate to dashboard">Dashboard</button>
-          <button type="button" aria-label="Log out">Log out</button>
+          <button type="button" aria-label="Navigate to dashboard">
+            <i class="fa-solid fa-table-columns" aria-hidden="true"></i>
+            Dashboard
+          </button>
+          <button type="button" aria-label="Log out">
+            <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+            Log out
+          </button>
         </div>
       </header>
       <div class="messages" id="messages">
@@ -238,9 +284,18 @@
       <form class="composer" id="composer-form">
         <div class="composer-bar">
           <input type="text" id="composer-input" placeholder="Message #World-chat" aria-label="Type a message for the World-chat channel" />
-          <button type="button" aria-label="Upload file">Upload</button>
-          <button type="button" aria-label="Insert GIF">GIF</button>
-          <button type="submit" aria-label="Send message">Send</button>
+          <button type="button" aria-label="Upload file">
+            <i data-lucide="paperclip" aria-hidden="true"></i>
+            Upload
+          </button>
+          <button type="button" aria-label="Insert GIF">
+            <i class="fa-solid fa-file-image" aria-hidden="true"></i>
+            GIF
+          </button>
+          <button type="submit" aria-label="Send message">
+            <i data-lucide="send" aria-hidden="true"></i>
+            Send
+          </button>
         </div>
       </form>
     </section>
@@ -249,7 +304,10 @@
       <h2>Members</h2>
     </aside>
   </main>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script>
+    lucide.createIcons();
+
     document.getElementById("composer-form").addEventListener("submit", (event) => {
       event.preventDefault();
       const input = document.getElementById("composer-input");
