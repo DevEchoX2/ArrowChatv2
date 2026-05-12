@@ -159,7 +159,7 @@ privateRoomCallBtn.addEventListener('click', () => {
   if (!room) return;
   const others = room.members.filter((m) => m !== 'You');
   if (!others.length) {
-    showCallNotice('Invite at least one other member to start a private call.');
+    showCallNotice('At least one other member is required for a private call.');
     return;
   }
   const chosen = others[0];

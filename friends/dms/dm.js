@@ -1,6 +1,9 @@
 const params = new URLSearchParams(window.location.search);
 const rawDmUser = params.get('user') || 'Friend';
-const dmUser = (rawDmUser.replace(/[^a-zA-Z0-9 _.-]/g, '').replace(/\s+/g, ' ').trim().slice(0, 64)) || 'Friend';
+function sanitizeDmUser(name) {
+  return (String(name).replace(/[^a-zA-Z0-9 _.-]/g, '').replace(/\s+/g, ' ').trim().slice(0, 64)) || 'Friend';
+}
+const dmUser = sanitizeDmUser(rawDmUser);
 const dmTitle = document.getElementById('dm-title');
 const form = document.getElementById('composer-form');
 const input = document.getElementById('composer-input');
