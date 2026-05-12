@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — ArrowChat</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --card: #141414;
+      --border: #252525;
+      --border2: #2e2e2e;
+      --text: #e8e8e8;
+      --muted: #888;
+      --dim: #555;
+      --field: #0a0a0a;
+      --accent: #5865f2;
+      --accent-hover: #4752c4;
+      --danger: #ed4245;
+      color-scheme: dark;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+    html, body { min-height: 100vh; background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; }
+    body { padding: 1rem; }
+
+    .login-wrap {
+      width: min(440px, 100%);
+    }
+    .logo-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-bottom: 1.6rem;
+    }
+    .logo-icon {
+      width: 42px; height: 42px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      color: #fff;
+    }
+    .logo-name { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+    }
+    .card-heading { font-size: 1.35rem; font-weight: 800; text-align: center; margin-bottom: 0.3rem; }
+    .card-sub { font-size: 0.82rem; color: var(--muted); text-align: center; margin-bottom: 1.6rem; }
+
+    .mode-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border2);
+      margin-bottom: 1.4rem;
+    }
+    .mode-tab {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--muted);
+      padding: 0.55rem;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .mode-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+    .mode-tab:hover:not(.active) { color: var(--text); }
+
+    .field { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1rem; }
+    .field label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .field input {
+      background: var(--field);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.9rem;
+      padding: 0.6rem 0.75rem;
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+    .field input:focus { border-color: var(--accent); }
+    .field input::placeholder { color: var(--dim); }
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 2.6rem; }
+    .pw-toggle {
+      position: absolute;
+      right: 0.6rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.85rem;
+      cursor: pointer;
+      padding: 0.2rem;
+      line-height: 1;
+    }
+    .pw-toggle:hover { color: var(--text); }
+
+    .form-error {
+      font-size: 0.8rem;
+      color: var(--danger);
+      min-height: 1.2rem;
+      margin-bottom: 0.4rem;
+      text-align: center;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.7rem;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 0.2rem;
+    }
+    .submit-btn:hover { background: var(--accent-hover); }
+    .submit-btn:disabled { opacity: 0.6; cursor: default; }
+
+    .pw-hint {
+      font-size: 0.73rem;
+      color: var(--dim);
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="logo-row">
+      <div class="logo-icon"><i class="fa-solid fa-arrow-right"></i></div>
+      <span class="logo-name">ArrowChat</span>
+    </div>
+    <div class="card">
+      <div class="card-heading" id="card-heading">Welcome back!</div>
+      <div class="card-sub" id="card-sub">Sign in to continue to ArrowChat.</div>
+      <div class="mode-tabs">
+        <button class="mode-tab active" id="tab-signin" type="button">Sign In</button>
+        <button class="mode-tab" id="tab-register" type="button">Create Account</button>
+      </div>
+      <form id="auth-form" novalidate>
+        <div class="field" id="field-username" style="display:none">
+          <label for="input-username">Display Name</label>
+          <input type="text" id="input-username" placeholder="Your name" autocomplete="name" maxlength="64" />
+        </div>
+        <div class="field">
+          <label for="input-email">Email</label>
+          <input type="email" id="input-email" placeholder="you@gmail.com" autocomplete="email" />
+        </div>
+        <div class="field">
+          <label for="input-password">Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="input-password" placeholder="••••••••" autocomplete="current-password" />
+            <button class="pw-toggle" type="button" id="pw-toggle-btn" aria-label="Toggle password visibility">
+              <i class="fa-solid fa-eye" id="pw-toggle-icon"></i>
+            </button>
+          </div>
+          <span class="pw-hint" id="pw-hint" style="display:none">8+ chars, upper, lower, number, symbol</span>
+        </div>
+        <div class="field" id="field-confirm" style="display:none">
+          <label for="input-confirm">Confirm Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="input-confirm" placeholder="••••••••" autocomplete="new-password" />
+          </div>
+        </div>
+        <div class="form-error" id="form-error"></div>
+        <button class="submit-btn" type="submit" id="submit-btn">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="shared/auth.js"></script>
+  <script>
+    (async () => {
+      // If already logged in, redirect to private rooms
+      const session = await ArrowAuth.getSession();
+      if (session) {
+        location.replace('groupchat/privaterooms/private.html');
+        return;
+      }
+
+      let isRegister = false;
+
+      const tabSignin = document.getElementById('tab-signin');
+      const tabRegister = document.getElementById('tab-register');
+      const fieldUsername = document.getElementById('field-username');
+      const fieldConfirm = document.getElementById('field-confirm');
+      const cardHeading = document.getElementById('card-heading');
+      const cardSub = document.getElementById('card-sub');
+      const submitBtn = document.getElementById('submit-btn');
+      const formError = document.getElementById('form-error');
+      const pwHint = document.getElementById('pw-hint');
+      const pwToggleBtn = document.getElementById('pw-toggle-btn');
+      const pwToggleIcon = document.getElementById('pw-toggle-icon');
+      const inputPw = document.getElementById('input-password');
+
+      function setMode(register) {
+        isRegister = register;
+        tabSignin.classList.toggle('active', !register);
+        tabRegister.classList.toggle('active', register);
+        fieldUsername.style.display = register ? '' : 'none';
+        fieldConfirm.style.display = register ? '' : 'none';
+        pwHint.style.display = register ? '' : 'none';
+        cardHeading.textContent = register ? 'Create an account' : 'Welcome back!';
+        cardSub.textContent = register ? 'Join ArrowChat today.' : 'Sign in to continue to ArrowChat.';
+        submitBtn.textContent = register ? 'Create Account' : 'Sign In';
+        document.getElementById('input-password').autocomplete = register ? 'new-password' : 'current-password';
+        formError.textContent = '';
+      }
+
+      tabSignin.addEventListener('click', () => setMode(false));
+      tabRegister.addEventListener('click', () => setMode(true));
+
+      pwToggleBtn.addEventListener('click', () => {
+        const show = inputPw.type === 'password';
+        inputPw.type = show ? 'text' : 'password';
+        pwToggleIcon.className = show ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+      });
+
+      document.getElementById('auth-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        formError.textContent = '';
+        submitBtn.disabled = true;
+
+        const email = document.getElementById('input-email').value.trim();
+        const password = document.getElementById('input-password').value;
+
+        try {
+          if (isRegister) {
+            const username = document.getElementById('input-username').value.trim();
+            const confirm = document.getElementById('input-confirm').value;
+            if (password !== confirm) throw new Error('Passwords do not match.');
+            await ArrowAuth.register({ username, email, password });
+          } else {
+            await ArrowAuth.login({ email, password });
+          }
+          location.replace('groupchat/privaterooms/private.html');
+        } catch (err) {
+          formError.textContent = err.message || 'Something went wrong.';
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
