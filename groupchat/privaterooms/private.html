@@ -1,1 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Private Rooms — ArrowChatv2</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="private.css" />
+</head>
+<body>
+  <div class="layout">
+    <!-- Main nav sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <i class="fa-solid fa-arrow-right"></i>
+        ArrowChat
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Navigate</div>
+          <a class="nav-item" href="../../friends/index.html">
+            <i class="fa-solid fa-user-group"></i> Friends
+          </a>
+          <a class="nav-item active" href="private.html">
+            <i class="fa-solid fa-lock"></i> Private Rooms
+          </a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Public Rooms</div>
+          <a class="nav-item" href="../../public/public-rooms/worldchat.html">
+            <i class="fa-solid fa-hashtag"></i> World-chat
+          </a>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="avatar"><i class="fa-solid fa-user"></i></div>
+          <div class="user-info">
+            <div class="user-name">You</div>
+            <div class="user-status">Online</div>
+          </div>
+          <div class="footer-actions">
+            <a class="icon-btn" href="../../settings/user-settings/index.html" title="Settings" aria-label="Settings">
+              <i class="fa-solid fa-gear"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </aside>
 
+    <!-- Rooms list panel -->
+    <div class="rooms-panel">
+      <div class="rooms-header">
+        <h2>Private Rooms</h2>
+        <button class="new-room-btn" id="new-room-btn" type="button">
+          <i class="fa-solid fa-plus"></i> New
+        </button>
+      </div>
+      <div class="rooms-list" id="rooms-list"></div>
+    </div>
+
+    <!-- Chat area -->
+    <main class="chat">
+      <header class="chat-header">
+        <div class="chat-title">
+          <i class="fa-solid fa-lock"></i>
+          <span id="chat-room-name">Select a room</span>
+        </div>
+        <div class="header-actions">
+          <button class="header-btn" type="button" aria-label="Log out">
+            <i class="fa-solid fa-right-from-bracket"></i> Log out
+          </button>
+        </div>
+      </header>
+      <div class="messages" id="messages">
+        <div class="chat-empty">
+          <i class="fa-solid fa-lock"></i>
+          <span>Select or create a private room</span>
+          <span class="sub">Up to 15 members per room</span>
+        </div>
+      </div>
+      <div class="composer">
+        <form class="composer-bar" id="composer-form">
+          <button class="composer-action" type="button" title="Attach file" aria-label="Attach file">
+            <i class="fa-solid fa-paperclip"></i>
+          </button>
+          <input type="text" id="composer-input" placeholder="Select a room first..." autocomplete="off" disabled aria-label="Message input" />
+          <button class="send-btn" id="send-btn" type="submit" disabled aria-label="Send message">
+            <i class="fa-solid fa-paper-plane"></i> Send
+          </button>
+        </form>
+      </div>
+    </main>
+
+    <!-- Members panel -->
+    <aside class="members-panel">
+      <div class="members-header">Members &mdash; <span id="member-count">0</span></div>
+      <div class="members-list" id="members-list">
+        <div class="members-section-label">Members</div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Create Room Modal -->
+  <div class="modal-overlay" id="create-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <h2 id="modal-title"><i class="fa-solid fa-lock" style="font-size:0.9rem;color:var(--muted)"></i> Create Private Room</h2>
+      <p>Private rooms are invite-only. Maximum <strong>15 members</strong> including you.</p>
+      <form id="create-room-form">
+        <div class="modal-field">
+          <label for="room-name-input">Room Name</label>
+          <input type="text" id="room-name-input" placeholder="e.g. game-squad" autocomplete="off" maxlength="32" />
+        </div>
+        <div class="modal-field">
+          <label>Invite Members <span class="member-limit" id="member-count-display">1 / 15 members</span></label>
+          <div class="members-inputs" id="member-inputs"></div>
+          <button class="add-member-btn" id="add-member-btn" type="button">
+            <i class="fa-solid fa-user-plus"></i> Add member
+          </button>
+        </div>
+        <div class="modal-error" id="modal-error"></div>
+        <div class="modal-actions">
+          <button class="btn-cancel" id="cancel-create" type="button">Cancel</button>
+          <button class="btn-create" type="submit">Create Room</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="private.js"></script>
+</body>
+</html>
