@@ -102,8 +102,13 @@
       position: absolute;
       left: 0.75rem;
       bottom: 0.75rem;
-      font-size: 1.1rem;
+      font-size: 1rem;
       color: #d8d8dd;
+      background: #1d1e24;
+      border: 1px solid #373744;
+      border-radius: 6px;
+      padding: 0.2rem 0.45rem;
+      cursor: pointer;
     }
 
     .sidebar {
@@ -196,7 +201,7 @@
   <main class="app" aria-label="ArrowChatv2 heavenly chat layout">
     <aside class="sidebar">
       <div class="search">
-        <input type="text" value="Search..." aria-label="Search" />
+        <input type="text" placeholder="Search..." aria-label="Search" />
       </div>
       <ul class="nav">
         <li class="active">👥 Friends</li>
@@ -204,7 +209,7 @@
         <li>📋 Rules</li>
       </ul>
       <p class="section-title">Direct Messages</p>
-      <span class="settings" aria-hidden="true">⚙️</span>
+      <button class="settings" type="button" aria-label="Open settings">⚙️</button>
     </aside>
 
     <section class="chat">
@@ -212,7 +217,7 @@
         <h1 class="channel">#World-chat</h1>
         <div class="actions">
           <button type="button">Dashboard</button>
-          <button type="button" aria-label="Logout">↪</button>
+          <button type="button" aria-label="Log out">Log out</button>
         </div>
       </header>
       <div class="messages">
