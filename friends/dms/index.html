@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Direct Message — ArrowChatv2</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="dm.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <i class="fa-solid fa-arrow-right"></i>
+        ArrowChat
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Navigate</div>
+          <a class="nav-item active" href="../index.html"><i class="fa-solid fa-user-group"></i> Friends</a>
+          <a class="nav-item" href="../../groupchat/privaterooms/private.html"><i class="fa-solid fa-lock"></i> Private Rooms</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Public Rooms</div>
+          <a class="nav-item" href="../../public/public-rooms/worldchat.html"><i class="fa-solid fa-hashtag"></i> World-chat</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="chat">
+      <header class="chat-header">
+        <div class="chat-title">
+          <i class="fa-solid fa-message"></i>
+          <span id="dm-title">Direct Message</span>
+        </div>
+        <div class="header-actions">
+          <button class="header-btn" id="start-call-btn" type="button" aria-label="Start call">
+            <i class="fa-solid fa-phone"></i> Call
+          </button>
+          <button class="header-btn" id="start-private-call-btn" type="button" aria-label="Start private call">
+            <i class="fa-solid fa-user-lock"></i> Private Call
+          </button>
+          <a class="header-btn" href="../index.html" aria-label="Back to friends">
+            <i class="fa-solid fa-arrow-left"></i> Back
+          </a>
+        </div>
+      </header>
+
+      <div class="call-banner" id="call-banner" hidden>
+        <span id="call-banner-text"></span>
+        <button class="end-call-btn" id="end-call-btn" type="button">
+          <i class="fa-solid fa-phone-slash"></i> End
+        </button>
+      </div>
+
+      <div class="messages" id="messages">
+        <div class="messages-empty" id="msg-empty">
+          <i class="fa-regular fa-comments"></i>
+          <span>Start your conversation.</span>
+        </div>
+      </div>
+
+      <div class="composer">
+        <form class="composer-bar" id="composer-form">
+          <input type="text" id="composer-input" placeholder="Write a DM..." autocomplete="off" aria-label="Message input" />
+          <button class="send-btn" type="submit" aria-label="Send message">
+            <i class="fa-solid fa-paper-plane"></i> Send
+          </button>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script src="dm.js"></script>
+</body>
+</html>

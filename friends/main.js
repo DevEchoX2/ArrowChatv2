@@ -18,6 +18,22 @@ function esc(str) {
 
 const STATUSES = ['online', 'away', 'offline'];
 
+function renderDMList() {
+  const list = document.getElementById('dm-list');
+  if (!list) return;
+  const friends = loadFriends();
+  if (!friends.length) {
+    list.innerHTML = '<div class="nav-item nav-placeholder"><i class="fa-solid fa-message"></i> No DMs</div>';
+    return;
+  }
+  list.innerHTML = friends.map((f) => {
+    const encoded = encodeURIComponent(f.name);
+    return `<a class="nav-item" href="dms/index.html?user=${encoded}">
+      <i class="fa-solid fa-message"></i> ${esc(f.name)}
+    </a>`;
+  }).join('');
+}
+
 function friendItemHTML(f, tab) {
   const dotClass = `status-${f.status}`;
   const actionsBtns = tab === 'blocked'
@@ -113,8 +129,9 @@ document.getElementById('friends-content').addEventListener('click', (e) => {
     saveBlocked(blocked.filter(b => b.name !== name));
     renderPanel('blocked');
   } else if (action === 'message') {
-    alert(`DM with ${name} — socket coming soon.`);
+    window.location.href = `dms/index.html?user=${encodeURIComponent(name)}`;
   }
+  renderDMList();
 });
 
 // Add friend form
@@ -139,7 +156,9 @@ document.getElementById('add-friend-form').addEventListener('submit', (e) => {
   input.value = '';
   notice.textContent = `Friend request sent to ${name}!`;
   setTimeout(() => { notice.textContent = ''; }, 3000);
+  renderDMList();
 });
 
 // Initial render
 renderPanel('online');
+renderDMList();

@@ -19,6 +19,8 @@ let activeRoomId = null;
 // messages stored per-room in memory
 const roomMessages = {};
 const roomLastAuthor = {};
+// per-room call state: { [roomId]: { type: 'room' } | { type: 'private', target: string } }
+const roomCalls = {};
 
 // TODO: connect socket.io when backend is ready
 // const socket = io();
@@ -47,6 +49,13 @@ document.getElementById('rooms-list').addEventListener('click', (e) => {
   selectRoom(item.dataset.id);
 });
 
+const roomCallBtn = document.getElementById('room-call-btn');
+const privateRoomCallBtn = document.getElementById('private-room-call-btn');
+const endCallBtn = document.getElementById('end-call-btn');
+const callBanner = document.getElementById('call-banner');
+const callBannerText = document.getElementById('call-banner-text');
+let callNoticeTimer = null;
+
 function selectRoom(id) {
   const rooms = loadRooms();
   const room = rooms.find(r => r.id === id);
@@ -59,6 +68,8 @@ function selectRoom(id) {
   document.getElementById('composer-input').disabled = false;
   document.getElementById('send-btn').disabled = false;
   document.getElementById('composer-input').placeholder = `Message ${room.name}`;
+  roomCallBtn.disabled = false;
+  privateRoomCallBtn.disabled = false;
 
   // messages
   const msgs = roomMessages[id] || [];
@@ -73,6 +84,7 @@ function selectRoom(id) {
 
   // members
   renderMembers(room.members, room.owner);
+  renderCallState(room);
 }
 
 function renderMembers(members, owner) {
@@ -88,6 +100,86 @@ function renderMembers(members, owner) {
         </div>
       </div>`).join('');
 }
+
+function addSystemMessage(roomId, text) {
+  const time = ts();
+  if (!roomMessages[roomId]) roomMessages[roomId] = [];
+  roomMessages[roomId].push({ author: 'System', text, time });
+  if (roomId === activeRoomId) {
+    addMessageEl('System', text, time, roomId);
+    roomLastAuthor[roomId] = 'System';
+  }
+}
+
+function renderCallState(room) {
+  if (callNoticeTimer) {
+    clearTimeout(callNoticeTimer);
+    callNoticeTimer = null;
+  }
+  const call = roomCalls[room.id];
+  if (!call) {
+    callBanner.hidden = true;
+    callBanner.classList.remove('active');
+    callBannerText.textContent = '';
+    return;
+  }
+  callBanner.hidden = false;
+  callBanner.classList.add('active');
+  callBannerText.textContent = call.type === 'private'
+    ? `Private call with ${call.target} is active in ${room.name}.`
+    : `Room call is active in ${room.name}.`;
+}
+
+function showCallNotice(text) {
+  if (callNoticeTimer) clearTimeout(callNoticeTimer);
+  callBanner.hidden = false;
+  callBanner.classList.remove('active');
+  callBannerText.textContent = text;
+  callNoticeTimer = setTimeout(() => {
+    if (!activeRoomId || !roomCalls[activeRoomId]) {
+      callBanner.hidden = true;
+      callBannerText.textContent = '';
+    }
+  }, 2800);
+}
+
+roomCallBtn.addEventListener('click', () => {
+  if (!activeRoomId) return;
+  const rooms = loadRooms();
+  const room = rooms.find((r) => r.id === activeRoomId);
+  if (!room) return;
+  roomCalls[activeRoomId] = { type: 'room' };
+  addSystemMessage(activeRoomId, `You started a room call in ${room.name}.`);
+  renderCallState(room);
+});
+
+privateRoomCallBtn.addEventListener('click', () => {
+  if (!activeRoomId) return;
+  const rooms = loadRooms();
+  const room = rooms.find((r) => r.id === activeRoomId);
+  if (!room) return;
+  const others = room.members.filter((m) => m !== 'You');
+  if (!others.length) {
+    showCallNotice('Cannot start private call: no other members are available in this room.');
+    return;
+  }
+  const chosen = others[0];
+  roomCalls[activeRoomId] = { type: 'private', target: chosen };
+  addSystemMessage(activeRoomId, `You started a private call with ${chosen}.`);
+  renderCallState(room);
+});
+
+endCallBtn.addEventListener('click', () => {
+  if (!activeRoomId || !roomCalls[activeRoomId]) return;
+  const rooms = loadRooms();
+  const room = rooms.find((r) => r.id === activeRoomId);
+  const prior = roomCalls[activeRoomId];
+  delete roomCalls[activeRoomId];
+  addSystemMessage(activeRoomId, prior.type === 'private'
+    ? `You ended the private call with ${prior.target}.`
+    : 'You ended the room call.');
+  if (room) renderCallState(room);
+});
 
 /* ── Chat ── */
 function addMessageEl(author, text, time, roomId) {

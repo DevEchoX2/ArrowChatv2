@@ -67,11 +67,23 @@
           <span id="chat-room-name">Select a room</span>
         </div>
         <div class="header-actions">
+          <button class="header-btn" id="room-call-btn" type="button" disabled aria-label="Start room call">
+            <i class="fa-solid fa-phone"></i> Call
+          </button>
+          <button class="header-btn" id="private-room-call-btn" type="button" disabled aria-label="Start private call">
+            <i class="fa-solid fa-user-lock"></i> Private Call
+          </button>
           <button class="header-btn" type="button" aria-label="Log out">
             <i class="fa-solid fa-right-from-bracket"></i> Log out
           </button>
         </div>
       </header>
+      <div class="call-banner" id="call-banner" hidden>
+        <span id="call-banner-text"></span>
+        <button class="end-call-btn" id="end-call-btn" type="button">
+          <i class="fa-solid fa-phone-slash"></i> End
+        </button>
+      </div>
       <div class="messages" id="messages">
         <div class="chat-empty">
           <i class="fa-solid fa-lock"></i>
