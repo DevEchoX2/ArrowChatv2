@@ -5,11 +5,14 @@
 
   const te = new TextEncoder();
   const td = new TextDecoder();
-  const webCrypto = window.crypto || window.msCrypto || globalThis.crypto || null;
+  const runtimeScope = (typeof window !== 'undefined' && window)
+    || (typeof self !== 'undefined' && self)
+    || globalThis;
+  const webCrypto = runtimeScope.crypto || runtimeScope.msCrypto || globalThis.crypto || null;
   const subtleCrypto = webCrypto && (webCrypto.subtle || webCrypto.webkitSubtle);
 
   function secureCryptoError() {
-    return new Error('Secure crypto is unavailable. Open ArrowChat from HTTPS or localhost (not file://).');
+    return new Error('Secure crypto is unavailable in this runtime. Use a secure browser context (HTTPS or localhost).');
   }
 
   function randomHex(bytesLen) {
