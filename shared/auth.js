@@ -5,11 +5,17 @@
 
   const te = new TextEncoder();
   const td = new TextDecoder();
+  const webCrypto = window.crypto || window.msCrypto || globalThis.crypto || null;
+  const subtleCrypto = webCrypto && (webCrypto.subtle || webCrypto.webkitSubtle);
+
+  function secureCryptoError() {
+    return new Error('Secure crypto is unavailable. Open ArrowChat from HTTPS or localhost (not file://).');
+  }
 
   function randomHex(bytesLen) {
-    if (!(window.crypto && crypto.getRandomValues)) throw new Error('Secure randomness is unavailable.');
+    if (!(webCrypto && typeof webCrypto.getRandomValues === 'function')) throw secureCryptoError();
     const bytes = new Uint8Array(bytesLen);
-    crypto.getRandomValues(bytes);
+    webCrypto.getRandomValues(bytes);
     return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
   }
 
@@ -58,16 +64,16 @@
   }
 
   async function sign(input) {
-    if (!(window.crypto && crypto.subtle)) throw new Error('Secure crypto is unavailable.');
-    const key = await crypto.subtle.importKey('raw', te.encode(getJwtSecret()), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-    const sig = await crypto.subtle.sign('HMAC', key, te.encode(input));
+    if (!subtleCrypto) throw secureCryptoError();
+    const key = await subtleCrypto.importKey('raw', te.encode(getJwtSecret()), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sig = await subtleCrypto.sign('HMAC', key, te.encode(input));
     return b64url(new Uint8Array(sig));
   }
 
   async function hashPassword(password, saltHex) {
-    if (!(window.crypto && crypto.subtle)) throw new Error('Secure crypto is unavailable.');
-    const key = await crypto.subtle.importKey('raw', te.encode(String(password)), 'PBKDF2', false, ['deriveBits']);
-    const bits = await crypto.subtle.deriveBits(
+    if (!subtleCrypto) throw secureCryptoError();
+    const key = await subtleCrypto.importKey('raw', te.encode(String(password)), 'PBKDF2', false, ['deriveBits']);
+    const bits = await subtleCrypto.deriveBits(
       { name: 'PBKDF2', salt: hexToBytes(saltHex), iterations: 600000, hash: 'SHA-256' },
       key,
       256,
