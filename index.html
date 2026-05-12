@@ -1,1 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArrowChatv2 (heavenly)</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0b0d;
+      --panel: #070709;
+      --panel-border: #2a2a2f;
+      --text: #f3f3f4;
+      --muted: #9d9da5;
+      --field: #1f1f24;
+      --accent: #5f5dff;
+    }
 
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #191814;
+      color: var(--text);
+      padding: 1rem;
+    }
+
+    .app {
+      width: min(980px, 100%);
+      min-height: 560px;
+      background: var(--bg);
+      border: 1px solid #6d5e38;
+      border-radius: 8px;
+      display: grid;
+      grid-template-columns: 220px 1fr 200px;
+      overflow: hidden;
+    }
+
+    .sidebar,
+    .chat,
+    .members {
+      border-right: 1px solid var(--panel-border);
+      background: var(--panel);
+    }
+
+    .members {
+      border-right: none;
+    }
+
+    .search {
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .search input {
+      width: 100%;
+      background: var(--field);
+      border: 1px solid #34343c;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.35rem 0.6rem;
+      outline: none;
+    }
+
+    .nav {
+      list-style: none;
+      padding: 0.8rem 0.55rem;
+      display: grid;
+      gap: 0.3rem;
+    }
+
+    .nav li {
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      color: #dddde2;
+      font-weight: 600;
+      cursor: default;
+    }
+
+    .nav li.active {
+      background: #1b1c22;
+    }
+
+    .section-title {
+      margin: 0.4rem 0.65rem;
+      padding-top: 0.8rem;
+      border-top: 1px solid var(--panel-border);
+      color: var(--muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .settings {
+      position: absolute;
+      left: 0.75rem;
+      bottom: 0.75rem;
+      font-size: 1.1rem;
+      color: #d8d8dd;
+    }
+
+    .sidebar {
+      position: relative;
+    }
+
+    .chat {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.65rem 0.85rem;
+      border-bottom: 1px solid var(--panel-border);
+      font-weight: 700;
+    }
+
+    .chat-header .channel {
+      font-size: 1.15rem;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .actions button {
+      font-size: 0.72rem;
+      background: #1d1e24;
+      color: #efeff2;
+      border: 1px solid #373744;
+      border-radius: 6px;
+      padding: 0.2rem 0.5rem;
+    }
+
+    .messages {
+      display: grid;
+      place-items: center;
+      color: #8d8d95;
+      font-size: 0.78rem;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .composer {
+      padding: 0.8rem;
+      border-top: 1px solid var(--panel-border);
+    }
+
+    .composer-bar {
+      background: var(--field);
+      border: 1px solid #33333a;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.6rem;
+    }
+
+    .composer input {
+      flex: 1;
+      background: transparent;
+      border: 0;
+      color: var(--text);
+      outline: none;
+    }
+
+    .composer button {
+      border: 0;
+      background: #2a2b31;
+      color: #ececf0;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 4px;
+      line-height: 1;
+    }
+
+    .members h2 {
+      padding: 0.7rem 0.8rem;
+      border-bottom: 1px solid var(--panel-border);
+      text-align: center;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="ArrowChatv2 heavenly chat layout">
+    <aside class="sidebar">
+      <div class="search">
+        <input type="text" value="Search..." aria-label="Search" />
+      </div>
+      <ul class="nav">
+        <li class="active">👥 Friends</li>
+        <li>🚫 Blocked Users</li>
+        <li>📋 Rules</li>
+      </ul>
+      <p class="section-title">Direct Messages</p>
+      <span class="settings" aria-hidden="true">⚙️</span>
+    </aside>
+
+    <section class="chat">
+      <header class="chat-header">
+        <h1 class="channel">#World-chat</h1>
+        <div class="actions">
+          <button type="button">Dashboard</button>
+          <button type="button" aria-label="Logout">↪</button>
+        </div>
+      </header>
+      <div class="messages">
+        <p>For V1 support please visit our Discord Server.</p>
+      </div>
+      <form class="composer">
+        <div class="composer-bar">
+          <input type="text" placeholder="Message #World-chat" aria-label="Message #World-chat" />
+          <button type="button" aria-label="Upload">⇪</button>
+          <button type="button" aria-label="GIF">⌗</button>
+          <button type="button" aria-label="Send">➤</button>
+        </div>
+      </form>
+    </section>
+
+    <aside class="members">
+      <h2>Members</h2>
+    </aside>
+  </main>
+</body>
+</html>
