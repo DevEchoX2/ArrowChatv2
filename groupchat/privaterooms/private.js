@@ -2,6 +2,7 @@
 
 const MAX_MEMBERS = 15;
 const ROOMS_KEY = 'arrowchat_private_rooms';
+const currentUsername = (window.ArrowAuth && window.ArrowAuth.getCurrentUsername) ? window.ArrowAuth.getCurrentUsername() : 'You';
 
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -158,14 +159,12 @@ privateRoomCallBtn.addEventListener('click', () => {
   const rooms = loadRooms();
   const room = rooms.find((r) => r.id === activeRoomId);
   if (!room) return;
-  const others = room.members.filter((m) => m !== 'You');
-  if (!others.length) {
-    showCallNotice('Cannot start private call: no other members are available in this room.');
-    return;
-  }
-  const chosen = others[0];
+  const others = room.members.filter((m) => m !== currentUsername && m !== 'You');
+  const chosen = others[0] || 'waiting for participant';
   roomCalls[activeRoomId] = { type: 'private', target: chosen };
-  addSystemMessage(activeRoomId, `You started a private call with ${chosen}.`);
+  addSystemMessage(activeRoomId, chosen === 'waiting for participant'
+    ? 'You joined a private call. No one else is in the room yet.'
+    : `You started a private call with ${chosen}.`);
   renderCallState(room);
 });
 
@@ -219,11 +218,11 @@ document.getElementById('composer-form').addEventListener('submit', (e) => {
   if (!text) return;
   const time = ts();
   if (!roomMessages[activeRoomId]) roomMessages[activeRoomId] = [];
-  roomMessages[activeRoomId].push({ author: 'You', text, time });
-  addMessageEl('You', text, time, activeRoomId);
+  roomMessages[activeRoomId].push({ author: currentUsername, text, time });
+  addMessageEl(currentUsername, text, time, activeRoomId);
   // TODO: socket.emit('room:message', { roomId: activeRoomId, text });
   input.value = '';
-  roomLastAuthor[activeRoomId] = 'You';
+  roomLastAuthor[activeRoomId] = currentUsername;
 });
 
 /* ── Create Room Modal ── */
@@ -302,12 +301,12 @@ document.getElementById('create-room-form').addEventListener('submit', (e) => {
   }
 
   const id = `room_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-  rooms.push({ id, name, owner: 'You', members: ['You', ...uniqueMembers], createdAt: Date.now() });
+  rooms.push({ id, name, owner: currentUsername, members: [currentUsername, ...uniqueMembers], createdAt: Date.now() });
   saveRooms(rooms);
   renderRooms();
   modal.classList.remove('open');
   selectRoom(id);
-  // TODO: socket.emit('room:create', { id, name, members: ['You', ...uniqueMembers] });
+  // TODO: socket.emit('room:create', { id, name, members: [currentUsername, ...uniqueMembers] });
 });
 
 // Initial render

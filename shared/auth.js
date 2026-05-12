@@ -1,0 +1,175 @@
+(() => {
+  const USERS_KEY = 'arrowchat_accounts';
+  const TOKEN_KEY = 'arrowchat_auth_token';
+  const JWT_SECRET = 'arrowchatv2_jwt_secret_auth';
+  const ISS = 'arrowchatv2';
+
+  const te = new TextEncoder();
+  const td = new TextDecoder();
+
+  function b64url(bytes) {
+    let bin = '';
+    bytes.forEach((b) => { bin += String.fromCharCode(b); });
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  }
+
+  function b64urlText(text) {
+    return b64url(te.encode(text));
+  }
+
+  function fromB64url(segment) {
+    const base64 = segment.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((segment.length + 3) % 4);
+    const bin = atob(base64);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i += 1) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  function parseJsonSegment(segment) {
+    try {
+      return JSON.parse(td.decode(fromB64url(segment)));
+    } catch {
+      return null;
+    }
+  }
+
+  async function sign(input) {
+    if (window.crypto && crypto.subtle) {
+      const key = await crypto.subtle.importKey('raw', te.encode(JWT_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+      const sig = await crypto.subtle.sign('HMAC', key, te.encode(input));
+      return b64url(new Uint8Array(sig));
+    }
+    let hash = 2166136261;
+    const raw = `${input}.${JWT_SECRET}`;
+    for (let i = 0; i < raw.length; i += 1) {
+      hash ^= raw.charCodeAt(i);
+      hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+    }
+    return b64urlText(String(hash >>> 0));
+  }
+
+  async function hashPassword(password) {
+    return sign(`pwd:${password}`);
+  }
+
+  function loadUsers() {
+    try { return JSON.parse(localStorage.getItem(USERS_KEY)) || []; } catch { return []; }
+  }
+
+  function saveUsers(users) {
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  }
+
+  function normalizeUsername(name) {
+    return (String(name || '').replace(/\s+/g, ' ').trim().slice(0, 64)) || 'You';
+  }
+
+  async function createToken(payload, expiresInSeconds = 60 * 60 * 24 * 7) {
+    const now = Math.floor(Date.now() / 1000);
+    const header = { alg: 'HS256', typ: 'JWT' };
+    const claims = { iss: ISS, iat: now, exp: now + expiresInSeconds, ...payload };
+    const h = b64urlText(JSON.stringify(header));
+    const p = b64urlText(JSON.stringify(claims));
+    const s = await sign(`${h}.${p}`);
+    return `${h}.${p}.${s}`;
+  }
+
+  async function verifyToken(token) {
+    if (!token || typeof token !== 'string') return null;
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const [h, p, sig] = parts;
+    const expected = await sign(`${h}.${p}`);
+    if (sig !== expected) return null;
+    const payload = parseJsonSegment(p);
+    if (!payload || payload.iss !== ISS) return null;
+    if (payload.exp && Math.floor(Date.now() / 1000) >= payload.exp) return null;
+    return payload;
+  }
+
+  async function setSession(payload) {
+    const token = await createToken(payload);
+    localStorage.setItem(TOKEN_KEY, token);
+    return { token, payload: await verifyToken(token) };
+  }
+
+  async function getSession() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const payload = await verifyToken(token);
+    if (!payload) {
+      localStorage.removeItem(TOKEN_KEY);
+      return null;
+    }
+    return { token, payload };
+  }
+
+  function getCurrentUsername() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) {
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        const payload = parseJsonSegment(parts[1]);
+        if (payload && payload.username) return normalizeUsername(payload.username);
+      }
+    }
+    try {
+      const prefs = JSON.parse(localStorage.getItem('arrowchat_settings')) || {};
+      return normalizeUsername(prefs['display-name'] || prefs.username || 'You');
+    } catch {
+      return 'You';
+    }
+  }
+
+  async function ensureSession() {
+    const existing = await getSession();
+    if (existing) return existing;
+    const username = getCurrentUsername();
+    return setSession({ type: 'guest', username });
+  }
+
+  async function updateSessionProfile({ username, email }) {
+    const current = await ensureSession();
+    return setSession({ ...current.payload, username: normalizeUsername(username), email: String(email || current.payload.email || '').trim() });
+  }
+
+  async function registerOrUpdateAccount({ username, email, password }) {
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    if (!cleanEmail) throw new Error('Email is required.');
+
+    const users = loadUsers();
+    const cleanUsername = normalizeUsername(username);
+    const now = Date.now();
+    let user = users.find((u) => u.email === cleanEmail);
+
+    if (!user) {
+      if (!password || String(password).length < 6) throw new Error('Set a password with at least 6 characters.');
+      user = {
+        id: `acct_${now}_${Math.random().toString(36).slice(2, 7)}`,
+        email: cleanEmail,
+        username: cleanUsername,
+        passwordHash: await hashPassword(String(password)),
+        createdAt: now,
+        updatedAt: now,
+      };
+      users.push(user);
+    } else {
+      user.username = cleanUsername;
+      user.updatedAt = now;
+      if (password) user.passwordHash = await hashPassword(String(password));
+    }
+
+    saveUsers(users);
+    return setSession({ type: 'account', sub: user.id, username: user.username, email: user.email });
+  }
+
+  window.ArrowAuth = {
+    createToken,
+    verifyToken,
+    getSession,
+    ensureSession,
+    getCurrentUsername,
+    updateSessionProfile,
+    registerOrUpdateAccount,
+    JWT_SECRET,
+  };
+})();
