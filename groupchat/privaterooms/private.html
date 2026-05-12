@@ -3,12 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Private Rooms — ArrowChatv2</title>
+  <title>Private Rooms — ArrowChat</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="private.css" />
 </head>
-<body>
-  <div class="layout">
+<body style="visibility:hidden">
+
+  <div class="layout" id="app">
+
     <!-- Main nav sidebar -->
     <aside class="sidebar">
       <div class="sidebar-header">
@@ -34,15 +36,18 @@
       </nav>
       <div class="sidebar-footer">
         <div class="user-card">
-          <div class="avatar"><i class="fa-solid fa-user"></i></div>
+          <div class="avatar" id="footer-avatar"><i class="fa-solid fa-user"></i></div>
           <div class="user-info">
-            <div class="user-name">You</div>
+            <div class="user-name" id="footer-username">Loading…</div>
             <div class="user-status">Online</div>
           </div>
           <div class="footer-actions">
             <a class="icon-btn" href="../../settings/user-settings/index.html" title="Settings" aria-label="Settings">
               <i class="fa-solid fa-gear"></i>
             </a>
+            <button class="icon-btn" id="logout-btn" title="Log out" aria-label="Log out">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -59,7 +64,7 @@
       <div class="rooms-list" id="rooms-list"></div>
     </div>
 
-    <!-- Chat area -->
+    <!-- Chat + call area -->
     <main class="chat">
       <header class="chat-header">
         <div class="chat-title">
@@ -67,36 +72,51 @@
           <span id="chat-room-name">Select a room</span>
         </div>
         <div class="header-actions">
-          <button class="header-btn" id="room-call-btn" type="button" disabled aria-label="Start room call">
+          <button class="header-btn call-start-btn" id="start-call-btn" type="button" disabled aria-label="Start voice call">
             <i class="fa-solid fa-phone"></i> Call
           </button>
-          <button class="header-btn" id="private-room-call-btn" type="button" disabled aria-label="Start private call">
-            <i class="fa-solid fa-user-lock"></i> Private Call
-          </button>
-          <button class="header-btn" type="button" aria-label="Log out">
+          <button class="header-btn logout-header-btn" id="logout-header-btn" type="button" aria-label="Log out">
             <i class="fa-solid fa-right-from-bracket"></i> Log out
           </button>
         </div>
       </header>
-      <div class="call-banner" id="call-banner" hidden>
-        <span id="call-banner-text"></span>
-        <button class="end-call-btn" id="end-call-btn" type="button">
-          <i class="fa-solid fa-phone-slash"></i> End
-        </button>
+
+      <!-- Call area -->
+      <div class="call-area" id="call-area" hidden>
+        <div class="participants" id="participants"></div>
+        <div class="call-controls" id="call-controls">
+          <div class="ctrl-group">
+            <button class="ctrl-btn ctrl-mic" id="mic-btn" type="button" title="Mute / Unmute">
+              <i class="fa-solid fa-microphone" id="mic-icon"></i>
+            </button>
+          </div>
+          <div class="ctrl-group">
+            <button class="ctrl-btn ctrl-cam" id="cam-btn" type="button" title="Camera on / off">
+              <i class="fa-solid fa-video-slash" id="cam-icon"></i>
+            </button>
+          </div>
+          <button class="ctrl-btn ctrl-screen" id="screen-btn" type="button" title="Share screen">
+            <i class="fa-solid fa-display" id="screen-icon"></i>
+          </button>
+          <button class="ctrl-btn-end" id="end-call-btn" type="button" title="End call">
+            <i class="fa-solid fa-phone-slash"></i>
+          </button>
+        </div>
       </div>
+
+      <!-- Chat messages -->
       <div class="messages" id="messages">
-        <div class="chat-empty">
+        <div class="chat-empty" id="chat-empty">
           <i class="fa-solid fa-lock"></i>
           <span>Select or create a private room</span>
           <span class="sub">Up to 15 members per room</span>
         </div>
       </div>
+
+      <!-- Composer -->
       <div class="composer">
         <form class="composer-bar" id="composer-form">
-          <button class="composer-action" type="button" title="Attach file" aria-label="Attach file">
-            <i class="fa-solid fa-paperclip"></i>
-          </button>
-          <input type="text" id="composer-input" placeholder="Select a room first..." autocomplete="off" disabled aria-label="Message input" />
+          <input type="text" id="composer-input" placeholder="Select a room first…" autocomplete="off" disabled aria-label="Message input" />
           <button class="send-btn" id="send-btn" type="submit" disabled aria-label="Send message">
             <i class="fa-solid fa-paper-plane"></i> Send
           </button>
@@ -139,6 +159,7 @@
     </div>
   </div>
 
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="../../shared/auth.js"></script>
   <script src="private.js"></script>
 </body>

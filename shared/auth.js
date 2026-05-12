@@ -207,6 +207,63 @@
     return setSession({ type: 'account', sub: user.id, username: user.username, email: user.email });
   }
 
+  async function login({ email, password }) {
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    if (!cleanEmail) throw new Error('Email is required.');
+    if (!password) throw new Error('Password is required.');
+
+    const users = loadUsers();
+    const user = users.find((u) => u.email === cleanEmail);
+    if (!user) throw new Error('No account found with that email.');
+    if (!user.passwordHash) throw new Error('Account has no password set. Please register again.');
+
+    const hash = await hashPassword(String(password), user.passwordSalt);
+    if (hash !== user.passwordHash) throw new Error('Incorrect password.');
+
+    return setSession({ type: 'account', sub: user.id, username: user.username, email: user.email });
+  }
+
+  async function register({ username, email, password }) {
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    if (!cleanEmail) throw new Error('Email is required.');
+    if (!password) throw new Error('Password is required.');
+    if (!passwordIsStrong(password)) throw new Error('Password needs 8+ chars with upper, lower, number, and symbol.');
+
+    const users = loadUsers();
+    if (users.find((u) => u.email === cleanEmail)) {
+      throw new Error('An account with this email already exists. Please sign in.');
+    }
+
+    const cleanUsername = normalizeUsername(username) || cleanEmail.split('@')[0].slice(0, 32);
+    const now = Date.now();
+    const saltHex = randomHex(16);
+    const user = {
+      id: secureRandomId('acct'),
+      email: cleanEmail,
+      username: cleanUsername,
+      passwordSalt: saltHex,
+      passwordHash: await hashPassword(String(password), saltHex),
+      createdAt: now,
+      updatedAt: now,
+    };
+    users.push(user);
+    saveUsers(users);
+    return setSession({ type: 'account', sub: user.id, username: user.username, email: user.email });
+  }
+
+  async function requireLogin(loginUrl) {
+    const session = await getSession();
+    if (!session) {
+      window.location.replace(loginUrl || 'login.html');
+      return null;
+    }
+    return session;
+  }
+
+  function logout() {
+    localStorage.removeItem(TOKEN_KEY);
+  }
+
   window.ArrowAuth = {
     createToken,
     verifyToken,
@@ -215,5 +272,9 @@
     getCurrentUsername,
     updateSessionProfile,
     registerOrUpdateAccount,
+    login,
+    register,
+    requireLogin,
+    logout,
   };
 })();
