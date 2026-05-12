@@ -5,7 +5,12 @@ function loadPrefs() {
 }
 
 function savePrefs(prefs) {
-  localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function activeNameFromPrefs(prefs) {
@@ -90,7 +95,12 @@ document.getElementById('save-profile').addEventListener('click', async () => {
   next['display-name'] = document.getElementById('display-name').value.trim();
   next.bio = document.getElementById('bio').value.trim();
   next.presence = document.getElementById('presence').value;
-  savePrefs(next);
+  if (!savePrefs(next)) {
+    const notice = document.getElementById('save-profile-notice');
+    notice.textContent = 'Could not save profile.';
+    setTimeout(() => { notice.textContent = ''; }, 2000);
+    return;
+  }
 
   if (window.ArrowAuth) {
     try {
@@ -98,7 +108,9 @@ document.getElementById('save-profile').addEventListener('click', async () => {
         username: activeNameFromPrefs(next),
         email: next.email || document.getElementById('email').value.trim(),
       });
-    } catch {}
+    } catch (err) {
+      console.warn('Failed to update JWT session profile.', err);
+    }
   }
 
   applySidebarIdentity(activeNameFromPrefs(next), next.presence);
@@ -113,7 +125,11 @@ document.getElementById('save-account').addEventListener('click', async () => {
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
   next.email = email;
-  savePrefs(next);
+  if (!savePrefs(next)) {
+    notice.textContent = 'Could not save account settings.';
+    setTimeout(() => { notice.textContent = ''; }, 2200);
+    return;
+  }
 
   if (!window.ArrowAuth) {
     notice.textContent = 'Saved!';

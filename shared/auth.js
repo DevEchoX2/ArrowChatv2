@@ -17,13 +17,7 @@
     return `${prefix}_${Date.now()}_${randomHex(12)}`;
   }
 
-  const runtimeJwtSecret = (() => {
-    try {
-      return `jwt_secret_${randomHex(24)}`;
-    } catch {
-      return `jwt_secret_${Date.now()}`;
-    }
-  })();
+  let runtimeJwtSecret = null;
 
   function b64url(bytes) {
     let bin = '';
@@ -51,15 +45,34 @@
     }
   }
 
+  function hexToBytes(hex) {
+    const clean = String(hex || '').replace(/[^0-9a-f]/gi, '');
+    const out = new Uint8Array(clean.length / 2);
+    for (let i = 0; i < out.length; i += 1) out[i] = parseInt(clean.slice(i * 2, i * 2 + 2), 16);
+    return out;
+  }
+
+  function getJwtSecret() {
+    if (!runtimeJwtSecret) runtimeJwtSecret = `jwt_secret_${randomHex(24)}`;
+    return runtimeJwtSecret;
+  }
+
   async function sign(input) {
     if (!(window.crypto && crypto.subtle)) throw new Error('Secure crypto is unavailable.');
-    const key = await crypto.subtle.importKey('raw', te.encode(runtimeJwtSecret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const key = await crypto.subtle.importKey('raw', te.encode(getJwtSecret()), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
     const sig = await crypto.subtle.sign('HMAC', key, te.encode(input));
     return b64url(new Uint8Array(sig));
   }
 
-  async function hashPassword(password) {
-    return sign(`pwd:${password}`);
+  async function hashPassword(password, saltHex) {
+    if (!(window.crypto && crypto.subtle)) throw new Error('Secure crypto is unavailable.');
+    const key = await crypto.subtle.importKey('raw', te.encode(String(password)), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt: hexToBytes(saltHex), iterations: 120000, hash: 'SHA-256' },
+      key,
+      256,
+    );
+    return b64url(new Uint8Array(bits));
   }
 
   function loadUsers() {
@@ -157,15 +170,18 @@
         id: secureRandomId('acct'),
         email: cleanEmail,
         username: cleanUsername,
-        passwordHash: await hashPassword(String(password)),
+        passwordSalt: randomHex(16),
+        passwordHash: '',
         createdAt: now,
         updatedAt: now,
       };
+      user.passwordHash = await hashPassword(String(password), user.passwordSalt);
       users.push(user);
     } else {
       user.username = cleanUsername;
       user.updatedAt = now;
-      if (password) user.passwordHash = await hashPassword(String(password));
+      user.passwordSalt = user.passwordSalt || randomHex(16);
+      if (password) user.passwordHash = await hashPassword(String(password), user.passwordSalt);
     }
 
     saveUsers(users);

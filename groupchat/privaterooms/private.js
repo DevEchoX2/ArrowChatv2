@@ -127,7 +127,9 @@ function renderCallState(room) {
   callBanner.hidden = false;
   callBanner.classList.add('active');
   callBannerText.textContent = call.type === 'private'
-    ? `Private call with ${call.target} is active in ${room.name}.`
+    ? (call.target
+      ? `Private call with ${call.target} is active in ${room.name}.`
+      : `Private call is active in ${room.name}. Waiting for another member.`)
     : `Room call is active in ${room.name}.`;
 }
 
@@ -160,9 +162,9 @@ privateRoomCallBtn.addEventListener('click', () => {
   const room = rooms.find((r) => r.id === activeRoomId);
   if (!room) return;
   const others = room.members.filter((m) => m !== currentUsername && m !== 'You');
-  const chosen = others[0] || 'waiting for participant';
+  const chosen = others[0] || null;
   roomCalls[activeRoomId] = { type: 'private', target: chosen };
-  addSystemMessage(activeRoomId, chosen === 'waiting for participant'
+  addSystemMessage(activeRoomId, !chosen
     ? 'You joined a private call. No one else is in the room yet.'
     : `You started a private call with ${chosen}.`);
   renderCallState(room);
@@ -175,7 +177,9 @@ endCallBtn.addEventListener('click', () => {
   const prior = roomCalls[activeRoomId];
   delete roomCalls[activeRoomId];
   addSystemMessage(activeRoomId, prior.type === 'private'
-    ? `You ended the private call with ${prior.target}.`
+    ? (prior.target
+      ? `You ended the private call with ${prior.target}.`
+      : 'You ended the private call.')
     : 'You ended the room call.');
   if (room) renderCallState(room);
 });
