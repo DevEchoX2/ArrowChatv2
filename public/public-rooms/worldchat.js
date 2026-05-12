@@ -15,7 +15,7 @@ const onlineEl = document.getElementById('online-count');
 let lastAuthor = null;
 
 function esc(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 function ts() {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -94,10 +94,11 @@ form.addEventListener('submit', (e) => {
   if (!text) return;
   if (text.startsWith('/')) {
     handleCommand(text);
+    lastAuthor = 'System';
   } else {
     addMessage('You', text, ts(), true);
+    lastAuthor = 'You';
     // TODO: socket.emit('message', { text });
   }
   input.value = '';
-  lastAuthor = text.startsWith('/') ? 'System' : 'You';
 });

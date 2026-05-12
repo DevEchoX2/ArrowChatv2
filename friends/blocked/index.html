@@ -164,7 +164,7 @@
     }
     function save(list) { localStorage.setItem(BLOCKED_KEY, JSON.stringify(list)); }
     function esc(s) {
-      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
     function render() {
       const blocked = load();

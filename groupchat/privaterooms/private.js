@@ -4,7 +4,7 @@ const MAX_MEMBERS = 15;
 const ROOMS_KEY = 'arrowchat_private_rooms';
 
 function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 function ts() {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -209,7 +209,7 @@ document.getElementById('create-room-form').addEventListener('submit', (e) => {
     return;
   }
 
-  const id = `room_${Date.now()}`;
+  const id = `room_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
   rooms.push({ id, name, owner: 'You', members: ['You', ...uniqueMembers], createdAt: Date.now() });
   saveRooms(rooms);
   renderRooms();

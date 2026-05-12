@@ -13,7 +13,7 @@ function saveFriends(list) { localStorage.setItem(FRIENDS_KEY, JSON.stringify(li
 function saveBlocked(list) { localStorage.setItem(BLOCKED_KEY, JSON.stringify(list)); }
 
 function esc(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 const STATUSES = ['online', 'away', 'offline'];
@@ -134,7 +134,7 @@ document.getElementById('add-friend-form').addEventListener('submit', (e) => {
     notice.textContent = `${name} is blocked. Unblock them first.`;
     return;
   }
-  friends.push({ name, status: STATUSES[Math.floor(Math.random() * STATUSES.length)] });
+  friends.push({ name, status: 'offline' });
   saveFriends(friends);
   input.value = '';
   notice.textContent = `Friend request sent to ${name}!`;
