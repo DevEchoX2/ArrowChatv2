@@ -1,6 +1,10 @@
 (() => {
   const USERS_KEY = 'arrowchat_accounts';
   const TOKEN_KEY = 'arrowchat_auth_token';
+  const FIREBASE_CONFIG_GLOBAL_KEY = 'ARROWCHAT_FIREBASE_CONFIG';
+  const FIREBASE_CONFIG_STORAGE_KEY = 'arrowchat_firebase_config';
+  const FIREBASE_APP_CDN = 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js';
+  const FIREBASE_AUTH_CDN = 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js';
   const ISS = 'arrowchatv2';
 
   const te = new TextEncoder();
@@ -33,6 +37,7 @@
   }
 
   let runtimeJwtSecret = null;
+  let firebaseAuthPromise = null;
 
   function b64url(bytes) {
     let bin = '';
@@ -98,6 +103,84 @@
     localStorage.setItem(USERS_KEY, JSON.stringify(users));
   }
 
+  function readFirebaseConfig() {
+    const fromGlobal = runtimeScope[FIREBASE_CONFIG_GLOBAL_KEY];
+    if (fromGlobal && typeof fromGlobal === 'object') return fromGlobal;
+
+    try {
+      const raw = localStorage.getItem(FIREBASE_CONFIG_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch {}
+    return null;
+  }
+
+  function hasValidFirebaseConfig(config) {
+    if (!config || typeof config !== 'object') return false;
+    return Boolean(config.apiKey && config.authDomain && config.projectId && config.appId);
+  }
+
+  function loadScriptOnce(src) {
+    return new Promise((resolve, reject) => {
+      if (typeof document === 'undefined') return reject(new Error('Document unavailable.'));
+      const existing = document.querySelector(`script[data-arrowchat-src="${src}"]`);
+      if (existing) {
+        if (existing.dataset.loaded === '1') return resolve();
+        existing.addEventListener('load', () => resolve(), { once: true });
+        existing.addEventListener('error', () => reject(new Error(`Failed loading ${src}`)), { once: true });
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      script.dataset.arrowchatSrc = src;
+      script.addEventListener('load', () => {
+        script.dataset.loaded = '1';
+        resolve();
+      }, { once: true });
+      script.addEventListener('error', () => reject(new Error(`Failed loading ${src}`)), { once: true });
+      document.head.appendChild(script);
+    });
+  }
+
+  async function ensureFirebaseAuth() {
+    if (firebaseAuthPromise) return firebaseAuthPromise;
+    firebaseAuthPromise = (async () => {
+      const config = readFirebaseConfig();
+      if (!hasValidFirebaseConfig(config)) return null;
+      await loadScriptOnce(FIREBASE_APP_CDN);
+      await loadScriptOnce(FIREBASE_AUTH_CDN);
+      const fb = runtimeScope.firebase;
+      if (!fb || typeof fb.initializeApp !== 'function' || typeof fb.auth !== 'function') return null;
+      const app = (fb.apps && fb.apps.length) ? fb.apps[0] : fb.initializeApp(config);
+      return fb.auth(app);
+    })().catch(() => null);
+    return firebaseAuthPromise;
+  }
+
+  function firebaseUserToPayload(user, fallbackUsername = 'You') {
+    const username = normalizeUsername(user?.displayName || fallbackUsername || user?.email?.split('@')[0] || 'You');
+    const email = String(user?.email || '').trim().toLowerCase();
+    return {
+      type: 'account',
+      sub: String(user?.uid || secureRandomId('acct')),
+      username,
+      email,
+    };
+  }
+
+  function friendlyFirebaseError(err, fallbackMessage) {
+    const code = String(err?.code || '');
+    if (code === 'auth/invalid-email') return 'Invalid email address.';
+    if (code === 'auth/user-not-found') return 'No account found with that email.';
+    if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') return 'Incorrect email or password.';
+    if (code === 'auth/email-already-in-use') return 'An account with this email already exists. Please sign in.';
+    if (code === 'auth/weak-password') return 'Password needs 8+ chars with upper, lower, number, and symbol.';
+    if (code === 'auth/requires-recent-login') return 'Please sign in again before changing account email or password.';
+    return err?.message || fallbackMessage;
+  }
+
   function normalizeUsername(name) {
     const normalized = String(name || '')
       .replace(/[^a-zA-Z0-9 _.-]/g, '')
@@ -156,11 +239,13 @@
   async function getSession() {
     const token = localStorage.getItem(TOKEN_KEY);
     const payload = await verifyToken(token);
-    if (!payload) {
-      localStorage.removeItem(TOKEN_KEY);
-      return null;
-    }
-    return { token, payload };
+    if (payload) return { token, payload };
+
+    localStorage.removeItem(TOKEN_KEY);
+    const firebaseAuth = await ensureFirebaseAuth();
+    const firebaseUser = firebaseAuth && firebaseAuth.currentUser;
+    if (!firebaseUser) return null;
+    return setSession(firebaseUserToPayload(firebaseUser));
   }
 
   function getCurrentUsername() {
@@ -195,9 +280,39 @@
   async function registerOrUpdateAccount({ username, email, password }) {
     const cleanEmail = String(email || '').trim().toLowerCase();
     if (!cleanEmail) throw new Error('Email is required.');
+    const cleanUsername = normalizeUsername(username);
+    const firebaseAuth = await ensureFirebaseAuth();
+
+    if (firebaseAuth) {
+      try {
+        let user = firebaseAuth.currentUser;
+        if (!user) {
+          if (!password) throw new Error('Password is required to create a Firebase account.');
+          if (!passwordIsStrong(password)) throw new Error('Use at least 8 chars with upper, lower, number, and symbol.');
+          const cred = await firebaseAuth.createUserWithEmailAndPassword(cleanEmail, String(password));
+          user = cred.user;
+        } else {
+          if (cleanEmail !== String(user.email || '').trim().toLowerCase() && typeof user.updateEmail === 'function') {
+            await user.updateEmail(cleanEmail);
+          }
+          if (password) {
+            if (!passwordIsStrong(password)) throw new Error('Use at least 8 chars with upper, lower, number, and symbol.');
+            if (typeof user.updatePassword === 'function') await user.updatePassword(String(password));
+          }
+        }
+
+        if (cleanUsername && typeof user.updateProfile === 'function') {
+          await user.updateProfile({ displayName: cleanUsername });
+        }
+        if (typeof user.reload === 'function') await user.reload();
+        const activeUser = firebaseAuth.currentUser || user;
+        return setSession(firebaseUserToPayload(activeUser, cleanUsername));
+      } catch (err) {
+        throw new Error(friendlyFirebaseError(err, 'Could not save account.'));
+      }
+    }
 
     const users = loadUsers();
-    const cleanUsername = normalizeUsername(username);
     const now = Date.now();
     let user = users.find((u) => u.email === cleanEmail);
 
@@ -232,6 +347,16 @@
     const cleanEmail = String(email || '').trim().toLowerCase();
     if (!cleanEmail) throw new Error('Email is required.');
     if (!password) throw new Error('Password is required.');
+    const firebaseAuth = await ensureFirebaseAuth();
+
+    if (firebaseAuth) {
+      try {
+        const cred = await firebaseAuth.signInWithEmailAndPassword(cleanEmail, String(password));
+        return setSession(firebaseUserToPayload(cred.user));
+      } catch (err) {
+        throw new Error(friendlyFirebaseError(err, 'Could not sign in.'));
+      }
+    }
 
     const users = loadUsers();
     const user = users.find((u) => u.email === cleanEmail);
@@ -249,13 +374,28 @@
     if (!cleanEmail) throw new Error('Email is required.');
     if (!password) throw new Error('Password is required.');
     if (!passwordIsStrong(password)) throw new Error('Password needs 8+ chars with upper, lower, number, and symbol.');
+    const cleanUsername = normalizeUsername(username) || cleanEmail.split('@')[0].slice(0, 32);
+    const firebaseAuth = await ensureFirebaseAuth();
+
+    if (firebaseAuth) {
+      try {
+        const cred = await firebaseAuth.createUserWithEmailAndPassword(cleanEmail, String(password));
+        if (typeof cred.user?.updateProfile === 'function') {
+          await cred.user.updateProfile({ displayName: cleanUsername });
+          if (typeof cred.user.reload === 'function') await cred.user.reload();
+        }
+        const activeUser = firebaseAuth.currentUser || cred.user;
+        return setSession(firebaseUserToPayload(activeUser, cleanUsername));
+      } catch (err) {
+        throw new Error(friendlyFirebaseError(err, 'Could not create account.'));
+      }
+    }
 
     const users = loadUsers();
     if (users.find((u) => u.email === cleanEmail)) {
       throw new Error('An account with this email already exists. Please sign in.');
     }
 
-    const cleanUsername = normalizeUsername(username) || cleanEmail.split('@')[0].slice(0, 32);
     const now = Date.now();
     const saltHex = randomHex(16);
     const user = {
@@ -282,6 +422,11 @@
   }
 
   function logout() {
+    ensureFirebaseAuth().then((firebaseAuth) => {
+      if (firebaseAuth && typeof firebaseAuth.signOut === 'function') {
+        firebaseAuth.signOut().catch(() => {});
+      }
+    }).catch(() => {});
     localStorage.removeItem(TOKEN_KEY);
   }
 
