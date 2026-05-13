@@ -163,7 +163,7 @@
   }
 
   function firebaseUserToPayload(user, fallbackUsername = 'You') {
-    const username = normalizeUsername(user?.displayName || fallbackUsername || user?.email?.split('@')[0] || 'You');
+    const username = normalizeUsername(user?.displayName || fallbackUsername || emailUsernameFallback(user?.email) || 'You');
     const email = String(user?.email || '').trim().toLowerCase();
     return {
       type: 'account',
@@ -191,6 +191,10 @@
       .trim()
       .slice(0, 64);
     return normalized.length >= 2 ? normalized : 'You';
+  }
+
+  function emailUsernameFallback(email) {
+    return String(email || '').split('@')[0].trim().slice(0, EMAIL_USERNAME_FALLBACK_MAX_LEN);
   }
 
   function passwordIsStrong(password) {
@@ -378,7 +382,7 @@
     if (!cleanEmail) throw new Error('Email is required.');
     if (!password) throw new Error('Password is required.');
     if (!passwordIsStrong(password)) throw new Error(PASSWORD_COMPLEXITY_MESSAGE);
-    const cleanUsername = normalizeUsername(username) || cleanEmail.split('@')[0].slice(0, EMAIL_USERNAME_FALLBACK_MAX_LEN);
+    const cleanUsername = normalizeUsername(username) || emailUsernameFallback(cleanEmail);
     const firebaseAuth = await ensureFirebaseAuth();
 
     if (firebaseAuth) {
