@@ -7,6 +7,7 @@
   const FIREBASE_AUTH_CDN = 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js';
   const ISS = 'arrowchatv2';
   const PASSWORD_COMPLEXITY_MESSAGE = 'Use at least 8 chars with upper, lower, number, and symbol.';
+  const EMAIL_USERNAME_FALLBACK_MAX_LEN = 32;
 
   const te = new TextEncoder();
   const td = new TextDecoder();
@@ -377,7 +378,7 @@
     if (!cleanEmail) throw new Error('Email is required.');
     if (!password) throw new Error('Password is required.');
     if (!passwordIsStrong(password)) throw new Error(PASSWORD_COMPLEXITY_MESSAGE);
-    const cleanUsername = normalizeUsername(username) || cleanEmail.split('@')[0].slice(0, 32);
+    const cleanUsername = normalizeUsername(username) || cleanEmail.split('@')[0].slice(0, EMAIL_USERNAME_FALLBACK_MAX_LEN);
     const firebaseAuth = await ensureFirebaseAuth();
 
     if (firebaseAuth) {
@@ -429,7 +430,9 @@
     const firebaseAuth = await ensureFirebaseAuth();
     if (!firebaseAuth || typeof firebaseAuth.signOut !== 'function') return;
     if (!firebaseSignOutPromise) {
-      firebaseSignOutPromise = firebaseAuth.signOut().catch(() => {}).finally(() => {
+      firebaseSignOutPromise = firebaseAuth.signOut().catch((err) => {
+        console.warn('Firebase sign-out failed.', err);
+      }).finally(() => {
         firebaseSignOutPromise = null;
       });
     }
