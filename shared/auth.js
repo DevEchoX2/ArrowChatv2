@@ -6,6 +6,7 @@
   const FIREBASE_APP_CDN = 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js';
   const FIREBASE_AUTH_CDN = 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js';
   const ISS = 'arrowchatv2';
+  const PASSWORD_COMPLEXITY_MESSAGE = 'Use at least 8 chars with upper, lower, number, and symbol.';
 
   const te = new TextEncoder();
   const td = new TextDecoder();
@@ -38,6 +39,7 @@
 
   let runtimeJwtSecret = null;
   let firebaseAuthPromise = null;
+  let firebaseSignOutPromise = null;
 
   function b64url(bytes) {
     let bin = '';
@@ -176,7 +178,7 @@
     if (code === 'auth/user-not-found') return 'No account found with that email.';
     if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') return 'Incorrect email or password.';
     if (code === 'auth/email-already-in-use') return 'An account with this email already exists. Please sign in.';
-    if (code === 'auth/weak-password') return 'Password needs 8+ chars with upper, lower, number, and symbol.';
+    if (code === 'auth/weak-password') return 'Password must be at least 6 characters.';
     if (code === 'auth/requires-recent-login') return 'Please sign in again before changing account email or password.';
     return err?.message || fallbackMessage;
   }
@@ -237,6 +239,7 @@
   }
 
   async function getSession() {
+    if (firebaseSignOutPromise) await firebaseSignOutPromise;
     const token = localStorage.getItem(TOKEN_KEY);
     const payload = await verifyToken(token);
     if (payload) return { token, payload };
@@ -288,7 +291,7 @@
         let user = firebaseAuth.currentUser;
         if (!user) {
           if (!password) throw new Error('Password is required to create a Firebase account.');
-          if (!passwordIsStrong(password)) throw new Error('Use at least 8 chars with upper, lower, number, and symbol.');
+          if (!passwordIsStrong(password)) throw new Error(PASSWORD_COMPLEXITY_MESSAGE);
           const cred = await firebaseAuth.createUserWithEmailAndPassword(cleanEmail, String(password));
           user = cred.user;
         } else {
@@ -296,7 +299,7 @@
             await user.updateEmail(cleanEmail);
           }
           if (password) {
-            if (!passwordIsStrong(password)) throw new Error('Use at least 8 chars with upper, lower, number, and symbol.');
+            if (!passwordIsStrong(password)) throw new Error(PASSWORD_COMPLEXITY_MESSAGE);
             if (typeof user.updatePassword === 'function') await user.updatePassword(String(password));
           }
         }
@@ -317,7 +320,7 @@
     let user = users.find((u) => u.email === cleanEmail);
 
     if (!user) {
-      if (!passwordIsStrong(password)) throw new Error('Use at least 8 chars with upper, lower, number, and symbol.');
+      if (!passwordIsStrong(password)) throw new Error(PASSWORD_COMPLEXITY_MESSAGE);
       user = {
         id: secureRandomId('acct'),
         email: cleanEmail,
@@ -334,7 +337,7 @@
       user.updatedAt = now;
       user.passwordSalt = user.passwordSalt || randomHex(16);
       if (password) {
-        if (!passwordIsStrong(password)) throw new Error('Use at least 8 chars with upper, lower, number, and symbol.');
+        if (!passwordIsStrong(password)) throw new Error(PASSWORD_COMPLEXITY_MESSAGE);
         user.passwordHash = await hashPassword(String(password), user.passwordSalt);
       }
     }
@@ -373,7 +376,7 @@
     const cleanEmail = String(email || '').trim().toLowerCase();
     if (!cleanEmail) throw new Error('Email is required.');
     if (!password) throw new Error('Password is required.');
-    if (!passwordIsStrong(password)) throw new Error('Password needs 8+ chars with upper, lower, number, and symbol.');
+    if (!passwordIsStrong(password)) throw new Error(PASSWORD_COMPLEXITY_MESSAGE);
     const cleanUsername = normalizeUsername(username) || cleanEmail.split('@')[0].slice(0, 32);
     const firebaseAuth = await ensureFirebaseAuth();
 
@@ -421,13 +424,16 @@
     return session;
   }
 
-  function logout() {
-    ensureFirebaseAuth().then((firebaseAuth) => {
-      if (firebaseAuth && typeof firebaseAuth.signOut === 'function') {
-        firebaseAuth.signOut().catch(() => {});
-      }
-    }).catch(() => {});
+  async function logout() {
     localStorage.removeItem(TOKEN_KEY);
+    const firebaseAuth = await ensureFirebaseAuth();
+    if (!firebaseAuth || typeof firebaseAuth.signOut !== 'function') return;
+    if (!firebaseSignOutPromise) {
+      firebaseSignOutPromise = firebaseAuth.signOut().catch(() => {}).finally(() => {
+        firebaseSignOutPromise = null;
+      });
+    }
+    await firebaseSignOutPromise;
   }
 
   window.ArrowAuth = {
