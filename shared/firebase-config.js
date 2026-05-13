@@ -6,7 +6,7 @@
     appId: '',
   };
 
-  const isFilled = Object.values(config).every((value) => String(value || '').trim().length > 0);
+  const isFilled = Object.values(config).every((value) => typeof value === 'string' && value.trim().length > 0);
   if (!isFilled) return;
 
   window.ARROWCHAT_FIREBASE_CONFIG = config;

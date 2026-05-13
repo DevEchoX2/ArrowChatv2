@@ -178,7 +178,7 @@
     if (code === 'auth/user-not-found') return 'No account found with that email.';
     if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') return 'Incorrect email or password.';
     if (code === 'auth/email-already-in-use') return 'An account with this email already exists. Please sign in.';
-    if (code === 'auth/weak-password') return 'Password must be at least 6 characters.';
+    if (code === 'auth/weak-password') return PASSWORD_COMPLEXITY_MESSAGE;
     if (code === 'auth/requires-recent-login') return 'Please sign in again before changing account email or password.';
     return err?.message || fallbackMessage;
   }
