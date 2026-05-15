@@ -1,0 +1,18 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAuthed() { return request.auth != null; }
+    function isImage() { return request.resource != null && request.resource.contentType.matches('image/.*'); }
+    function underSizeLimit() { return request.resource != null && request.resource.size < 5 * 1024 * 1024; }
+
+    match /users/{userId}/avatars/{fileName} {
+      allow read: if isAuthed();
+      allow write: if isAuthed() && request.auth.uid == userId && isImage() && underSizeLimit();
+    }
+
+    match /chats/{chatId}/{userId}/{fileName} {
+      allow read: if isAuthed();
+      allow write: if isAuthed() && request.auth.uid == userId && isImage() && underSizeLimit();
+    }
+  }
+}
