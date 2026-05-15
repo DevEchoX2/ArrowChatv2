@@ -1,9 +1,13 @@
 export function sanitizeText(input) {
+  const map = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#x27;"
+  };
+
   return String(input)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#x27;")
+    .replace(/[&<>"']/g, (ch) => map[ch] || ch)
     .trim();
 }

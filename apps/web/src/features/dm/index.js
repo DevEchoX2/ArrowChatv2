@@ -9,7 +9,7 @@ export function renderDMs(state) {
   const rows = state.dms
     .map(
       (dm) => `<div class="card">
-        <div class="row"><strong>${sanitizeText(dm.user)}</strong><span class="badge">Unread ${dm.unread}</span></div>
+        <div class="row"><strong>${sanitizeText(dm.user)}</strong><span class="badge">Unread ${String(dm.unread ?? 0)}</span></div>
         <div class="subtle">Last: ${sanitizeText(dm.messages.at(-1)?.text || "")}</div>
         <div class="subtle">Media: supported</div>
       </div>`

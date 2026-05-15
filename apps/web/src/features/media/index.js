@@ -32,7 +32,7 @@ export function bindMediaUpload(root, onValidFile) {
       const reader = new FileReader();
       reader.onload = () => {
         const dataUrl = String(reader.result || "");
-        const isSafeImageDataUrl = /^data:image\\/(png|jpeg|webp|gif);base64,[a-z0-9+/=]+$/i.test(dataUrl);
+        const isSafeImageDataUrl = /^data:image\/(png|jpeg|webp|gif);base64,[a-z0-9+/=]+$/i.test(dataUrl);
         if (!isSafeImageDataUrl) {
           if (status) status.textContent = "Invalid preview payload";
           preview.src = "";
