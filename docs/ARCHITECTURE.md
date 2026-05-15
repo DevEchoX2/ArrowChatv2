@@ -10,6 +10,14 @@
 - Settings
 - Media upload
 
+## Phase 2 Modules
+- Group channels
+- Message reactions
+- Read receipts
+- Moderation/admin tools
+- Search
+- Presence and typing indicators
+
 ## Core layers
 - Frontend: `apps/web`
 - Privileged operations: `services/api`
@@ -24,12 +32,17 @@
 - blocks
 - chats
 - chat_members
+- channels
 - messages
+- reactions
+- read_receipts
+- presence
+- moderation_reports
 - notifications
 - attachments
 
 All records should use `createdAt`, `updatedAt`, `createdBy`, `updatedBy`.
 
-## Rule-friendly membership convention
-- `chat_members` document IDs should follow: `${chatId}_${userId}`.
-- This enables direct membership checks in Firestore rules using `exists(...)`.
+## Membership verification policy
+- Do not rely on document IDs for membership verification.
+- Membership checks are based on data fields (`chats.memberIds`) and rule lookups.

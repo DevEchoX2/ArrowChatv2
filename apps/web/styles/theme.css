@@ -36,6 +36,8 @@ body {
 
 .nav {
   padding: 14px;
+  max-height: calc(100vh - 24px);
+  overflow: auto;
 }
 
 .brand {

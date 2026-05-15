@@ -3,6 +3,12 @@ import { getState, setState } from "./core/state.js";
 import { getFirebaseStatus } from "./core/firebase.js";
 import { renderGlobalChat, bindGlobalChatHandlers } from "./features/global-chat/index.js";
 import { renderDMs } from "./features/dm/index.js";
+import { renderGroupChannels } from "./features/group-channels/index.js";
+import { renderReactions } from "./features/reactions/index.js";
+import { renderReadReceipts } from "./features/read-receipts/index.js";
+import { renderModeration } from "./features/moderation/index.js";
+import { renderSearch } from "./features/search/index.js";
+import { renderPresence } from "./features/presence/index.js";
 import { renderNotifications } from "./features/notifications/index.js";
 import { renderFriends } from "./features/friends/index.js";
 import { renderBlockedUsers, bindBlockedHandlers } from "./features/blocked-users/index.js";
@@ -42,6 +48,18 @@ function renderCenter(state, firebaseStatus) {
       return renderGlobalChat(state);
     case "dms":
       return renderDMs(state);
+    case "channels":
+      return renderGroupChannels(state);
+    case "reactions":
+      return renderReactions(state);
+    case "receipts":
+      return renderReadReceipts(state);
+    case "moderation":
+      return renderModeration(state);
+    case "search":
+      return renderSearch(state);
+    case "presence":
+      return renderPresence(state);
     case "notifications":
       return renderNotifications(state);
     case "friends":
@@ -70,7 +88,7 @@ function renderRight(state) {
     </div>
     <div class="card">
       <div><strong>Policy</strong></div>
-      <div class="subtle">Friends and blocked-user checks should be server-enforced.</div>
+      <div class="subtle">Membership checks are field-based and server-enforced (never by document ID patterns).</div>
     </div>
   `;
 }

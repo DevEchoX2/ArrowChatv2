@@ -1,13 +1,12 @@
-import { assertNotBlocked, assertRateLimit } from "./guards.js";
+import { assertNotBlocked, assertRateLimit, assertChatMembership } from "./guards.js";
 
-export function sendMessagePrivileged({ senderId, chatId, text, members, blocks, countPerMinute }) {
+export function sendMessagePrivileged({ senderId, chat, text, blocks, countPerMinute }) {
   assertRateLimit({ countPerMinute });
+  assertChatMembership({ chat, userId: senderId });
 
-  const recipientIds = members.filter((m) => m.chatId === chatId).map((m) => m.userId);
+  const recipientIds = (chat.memberIds || []).filter((userId) => userId !== senderId);
   recipientIds.forEach((receiverId) => {
-    if (receiverId !== senderId) {
-      assertNotBlocked({ senderId, receiverId, blocks });
-    }
+    assertNotBlocked({ senderId, receiverId, blocks });
   });
 
   const cleaned = String(text || "").trim();
@@ -16,7 +15,7 @@ export function sendMessagePrivileged({ senderId, chatId, text, members, blocks,
   }
 
   return {
-    chatId,
+    chatId: chat.id,
     senderId,
     text: cleaned,
     createdAt: Date.now(),
