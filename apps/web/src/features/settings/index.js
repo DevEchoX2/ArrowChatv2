@@ -1,4 +1,4 @@
-import { sanitizeText } from "../../../../shared/utils/sanitize.js";
+import { sanitizeText } from "../../../../../shared/utils/sanitize.js";
 
 export function renderSettings(state, firebaseStatus) {
   return `

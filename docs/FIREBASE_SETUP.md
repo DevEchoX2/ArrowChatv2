@@ -13,7 +13,15 @@
 ## Client config contract
 The frontend reads runtime config from `window.__ARROWCHAT_FIREBASE_CONFIG__`.
 
-Create a file like `apps/web/config.local.js` (do not commit):
+Inject runtime config in your deployment template (recommended) or add a local script before `src/main.js`:
+
+```html
+<script>
+window.__ARROWCHAT_FIREBASE_CONFIG__ = { /* values */ };
+</script>
+```
+
+Local file option (`apps/web/config.local.js`, do not commit):
 
 ```js
 window.__ARROWCHAT_FIREBASE_CONFIG__ = {
@@ -26,7 +34,7 @@ window.__ARROWCHAT_FIREBASE_CONFIG__ = {
 };
 ```
 
-Then include it before `src/main.js` in `index.html` for local testing.
+This object must be present before `src/main.js` executes.
 
 ## Deploy rules
 Use files in `/home/runner/work/ArrowChatv2/ArrowChatv2/infra/firebase`:

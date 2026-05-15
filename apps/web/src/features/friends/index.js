@@ -1,4 +1,4 @@
-import { sanitizeText } from "../../../../shared/utils/sanitize.js";
+import { sanitizeText } from "../../../../../shared/utils/sanitize.js";
 
 export function renderFriends(state) {
   const rows = state.friends

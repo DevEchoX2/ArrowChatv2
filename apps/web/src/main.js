@@ -1,4 +1,4 @@
-import { NAV_ITEMS } from "../../shared/constants/navigation.js";
+import { NAV_ITEMS } from "../../../shared/constants/navigation.js";
 import { getState, setState } from "./core/state.js";
 import { getFirebaseStatus } from "./core/firebase.js";
 import { renderGlobalChat, bindGlobalChatHandlers } from "./features/global-chat/index.js";
@@ -8,7 +8,7 @@ import { renderFriends } from "./features/friends/index.js";
 import { renderBlockedUsers, bindBlockedHandlers } from "./features/blocked-users/index.js";
 import { renderSettings } from "./features/settings/index.js";
 import { bindMediaUpload } from "./features/media/index.js";
-import { sanitizeText } from "../../shared/utils/sanitize.js";
+import { sanitizeText } from "../../../shared/utils/sanitize.js";
 
 const app = document.getElementById("app");
 
