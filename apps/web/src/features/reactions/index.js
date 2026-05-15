@@ -6,7 +6,7 @@ export function renderReactions(state) {
       (r) => `<div class="card row">
         <span class="badge">${sanitizeText(r.emoji)}</span>
         <strong>${sanitizeText(r.messageId)}</strong>
-        <span class="subtle">Count ${sanitizeText(r.count)}</span>
+        <span class="subtle">Count ${String(r.count)}</span>
       </div>`
     )
     .join("");

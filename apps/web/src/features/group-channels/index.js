@@ -4,7 +4,7 @@ export function renderGroupChannels(state) {
   const rows = state.channels
     .map(
       (c) => `<div class="card">
-        <div class="row"><strong># ${sanitizeText(c.name)}</strong><span class="badge">Members ${c.memberCount}</span><span class="badge">Unread ${c.unread}</span></div>
+        <div class="row"><strong># ${sanitizeText(c.name)}</strong><span class="badge">Members ${String(c.memberCount)}</span><span class="badge">Unread ${String(c.unread)}</span></div>
       </div>`
     )
     .join("");
