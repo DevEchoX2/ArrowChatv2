@@ -29,10 +29,20 @@ export function bindMediaUpload(root, onValidFile) {
 
     if (status) status.textContent = "Ready to upload";
     if (preview && file) {
-      const url = URL.createObjectURL(file);
-      preview.src = url;
-      preview.classList.remove("hidden");
-      preview.onload = () => URL.revokeObjectURL(url);
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = String(reader.result || "");
+        const isSafeImageDataUrl = /^data:image\\/(png|jpeg|webp|gif);base64,[a-z0-9+/=]+$/i.test(dataUrl);
+        if (!isSafeImageDataUrl) {
+          if (status) status.textContent = "Invalid preview payload";
+          preview.src = "";
+          preview.classList.add("hidden");
+          return;
+        }
+        preview.src = dataUrl;
+        preview.classList.remove("hidden");
+      };
+      reader.readAsDataURL(file);
     }
 
     onValidFile(file);

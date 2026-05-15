@@ -29,3 +29,7 @@
 - attachments
 
 All records should use `createdAt`, `updatedAt`, `createdBy`, `updatedBy`.
+
+## Rule-friendly membership convention
+- `chat_members` document IDs should follow: `${chatId}_${userId}`.
+- This enables direct membership checks in Firestore rules using `exists(...)`.

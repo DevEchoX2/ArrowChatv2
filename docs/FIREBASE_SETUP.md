@@ -37,7 +37,7 @@ window.__ARROWCHAT_FIREBASE_CONFIG__ = {
 This object must be present before `src/main.js` executes.
 
 ## Deploy rules
-Use files in `/home/runner/work/ArrowChatv2/ArrowChatv2/infra/firebase`:
+Use files in `infra/firebase`:
 - `firestore.rules`
 - `storage.rules`
 - `firestore.indexes.json`

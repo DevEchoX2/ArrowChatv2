@@ -5,7 +5,7 @@ const DEFAULT_STATE = {
   activeView: "global",
   preferences: loadJSON("arrowchat.preferences", {
     theme: "yin-yang",
-    globalBg: "none"
+    globalBg: ""
   }),
   globalMessages: loadJSON("arrowchat.globalMessages", [
     { id: "g1", sender: "System", text: "Welcome to ArrowChat Global.", pinned: true },

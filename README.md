@@ -19,4 +19,4 @@ python -m http.server 8080
 Then open `http://localhost:8080`.
 
 ## Firebase setup
-See `/home/runner/work/ArrowChatv2/ArrowChatv2/docs/FIREBASE_SETUP.md`.
+See `docs/FIREBASE_SETUP.md`.

@@ -1,6 +1,6 @@
 import { sanitizeText } from "../../../../../shared/utils/sanitize.js";
 
-export function renderGlobalChat(state, onSend, onBgChange, onPin) {
+export function renderGlobalChat(state) {
   const list = state.globalMessages
     .map(
       (m) => `<div class="card">

@@ -1,6 +1,6 @@
 import { sanitizeText } from "../../../../../shared/utils/sanitize.js";
 
-export function renderBlockedUsers(state, onBlock) {
+export function renderBlockedUsers(state) {
   const rows = state.blocked
     .map((u) => `<div class="card"><strong>${sanitizeText(u.name)}</strong></div>`)
     .join("");

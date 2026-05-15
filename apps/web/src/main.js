@@ -12,6 +12,22 @@ import { sanitizeText } from "../../../shared/utils/sanitize.js";
 
 const app = document.getElementById("app");
 
+function createId() {
+  return globalThis.crypto?.randomUUID?.() ?? `id-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function toSafeBackgroundUrl(input) {
+  const raw = String(input || "").trim();
+  if (!raw) return "";
+  try {
+    const parsed = new URL(raw, window.location.origin);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return "";
+    return parsed.href;
+  } catch {
+    return "";
+  }
+}
+
 function navMarkup(activeView) {
   return NAV_ITEMS.map(
     (item) => `<button data-nav="${item.key}" class="${activeView === item.key ? "active" : ""}">
@@ -60,10 +76,11 @@ function renderRight(state) {
 }
 
 function paintBackground(bgUrl) {
-  document.body.style.backgroundImage = bgUrl
-    ? `linear-gradient(135deg, rgba(255,255,255,0.94), rgba(10,10,10,0.4)), url('${encodeURI(bgUrl)}')`
+  const safeUrl = toSafeBackgroundUrl(bgUrl);
+  document.body.style.backgroundImage = safeUrl
+    ? `linear-gradient(135deg, rgba(255,255,255,0.94), rgba(10,10,10,0.4)), url("${safeUrl}")`
     : "linear-gradient(135deg, #fff 0%, #f5f5f5 55%, #111 100%)";
-  document.body.style.backgroundSize = bgUrl ? "cover" : "auto";
+  document.body.style.backgroundSize = safeUrl ? "cover" : "auto";
 }
 
 function render() {
@@ -92,7 +109,7 @@ function render() {
       onSend(text) {
         const clean = sanitizeText(text);
         if (!clean) return;
-        const next = [{ id: crypto.randomUUID(), sender: "You", text: clean, pinned: false }, ...state.globalMessages];
+        const next = [{ id: createId(), sender: "You", text: clean, pinned: false }, ...state.globalMessages];
         setState({ globalMessages: next });
         render();
       },
@@ -118,14 +135,14 @@ function render() {
         if (exists) return;
 
         setState({
-          blocked: [{ id: crypto.randomUUID(), name: clean }, ...state.blocked],
+          blocked: [{ id: createId(), name: clean }, ...state.blocked],
           friends: state.friends.filter((f) => f.name.toLowerCase() !== clean.toLowerCase())
         });
 
         setState({
           notifications: [
             {
-              id: crypto.randomUUID(),
+              id: createId(),
               type: "moderation",
               text: `Blocked ${clean}`,
               read: false
@@ -143,7 +160,7 @@ function render() {
     setState({
       notifications: [
         {
-          id: crypto.randomUUID(),
+          id: createId(),
           type: "media",
           text: `Media selected: ${file.name}`,
           read: false
