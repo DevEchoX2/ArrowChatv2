@@ -1,4 +1,4 @@
-# ArrowChat Architecture
+# Private Dashboard Architecture
 
 ## MVP Modules
 - Auth
@@ -20,7 +20,8 @@
 
 ## Core layers
 - Frontend: `apps/web`
-- Privileged operations: `services/api`
+- Backend runtime: `services/backend`
+- Legacy operation reference: `services/api`
 - Shared contracts: `shared`
 - Security and data policy: `infra/firebase`
 

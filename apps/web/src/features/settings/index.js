@@ -12,7 +12,7 @@ export function renderSettings(state, firebaseStatus) {
       <div class="subtle">Blocked users cannot DM, mention, or interact.</div>
     </div>
     <div class="card">
-      <div><strong>Firebase mode</strong></div>
+      <div><strong>Runtime mode</strong></div>
       <div class="subtle">${sanitizeText(firebaseStatus.mode)}</div>
     </div>
   `;

@@ -1,4 +1,4 @@
-# Privileged API Layer (server-side)
+# Legacy Privileged API Reference (server-side)
 
 This folder is for operations that must not be trusted from client-side code:
 - Friendship lifecycle checks
@@ -12,4 +12,6 @@ This folder is for operations that must not be trusted from client-side code:
 - Do not verify permissions from document ID structure.
 - Verify from authenticated identity and document fields (for example `chat.memberIds`).
 
-Deploy as Cloud Functions / Cloud Run API and keep secrets server-side only.
+This folder is now reference logic only.
+
+For VPS/private hosting, deploy `services/backend` as the single runtime backend and do not expose this folder directly.

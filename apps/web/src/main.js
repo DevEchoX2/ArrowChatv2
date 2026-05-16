@@ -96,8 +96,8 @@ function renderRight(state) {
 function paintBackground(bgUrl) {
   const safeUrl = toSafeBackgroundUrl(bgUrl);
   document.body.style.backgroundImage = safeUrl
-    ? `linear-gradient(135deg, rgba(255,255,255,0.94), rgba(10,10,10,0.4)), url("${safeUrl}")`
-    : "linear-gradient(135deg, #fff 0%, #f5f5f5 55%, #111 100%)";
+    ? `linear-gradient(130deg, rgba(240,244,250,0.92), rgba(38,51,72,0.45)), url("${safeUrl}")`
+    : "linear-gradient(125deg, #eef1f5 0%, #dfe5ee 60%, #aab4c4 100%)";
   document.body.style.backgroundSize = safeUrl ? "cover" : "auto";
 }
 
@@ -108,7 +108,7 @@ function render() {
 
   app.innerHTML = `
     <aside class="panel nav">
-      <div class="brand">ArrowChat v2</div>
+      <div class="brand">Private Workspace</div>
       ${navMarkup(state.activeView)}
     </aside>
     <main class="panel center">${renderCenter(state, firebaseStatus)}</main>
