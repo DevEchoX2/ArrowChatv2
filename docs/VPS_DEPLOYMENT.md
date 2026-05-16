@@ -46,4 +46,5 @@ chat.yourdomain.com {
 ## Optional hardening
 - Restrict by source IP in front of Caddy or with firewall rules
 - Keep backend bound to loopback only (`127.0.0.1`)
-- Set strong `PRIVATE_ACCESS_PASSWORD` and `SESSION_SECRET`
+- Set `PRIVATE_ACCESS_PASSWORD` (>=12 chars) and `SESSION_SECRET` (>=32 chars)
+- Validate readiness after deploy with `GET /api/ready`

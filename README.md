@@ -31,3 +31,10 @@ Backend binds to `127.0.0.1:3001` by default.
 
 ## VPS deployment
 See `docs/VPS_DEPLOYMENT.md`.
+
+## Production docs
+- `docs/PRODUCTION_SCOPE.md`
+- `docs/ARCHITECTURE.md`
+- `docs/OPERATIONS_RUNBOOK.md`
+- `docs/SECURITY_VERIFICATION.md`
+- `docs/PRODUCTION_READINESS_CHECKLIST.md`
