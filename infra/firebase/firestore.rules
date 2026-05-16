@@ -1,0 +1,97 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthed() { return request.auth != null; }
+    function isOwner(userId) { return isAuthed() && request.auth.uid == userId; }
+    function chatDocPath(chatId) { return /databases/$(database)/documents/chats/$(chatId); }
+    function hasMember(chatId) {
+      return exists(chatDocPath(chatId)) &&
+        get(chatDocPath(chatId)).data.memberIds.hasAny([request.auth.uid]);
+    }
+    function isChatMember(chatId) { return isAuthed() && hasMember(chatId); }
+
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    match /profiles/{userId} {
+      allow read: if isAuthed();
+      allow write: if isOwner(userId);
+    }
+
+    match /preferences/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    match /friendships/{docId} {
+      allow read: if isAuthed() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.friendId == request.auth.uid
+      );
+      allow create: if isAuthed() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthed() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.friendId == request.auth.uid
+      );
+    }
+
+    match /blocks/{docId} {
+      allow read: if isAuthed() && (
+        resource.data.blockerId == request.auth.uid ||
+        resource.data.blockedId == request.auth.uid
+      );
+      allow create: if isAuthed() && request.auth.uid == request.resource.data.blockerId;
+      allow update: if false;
+      allow delete: if isAuthed() && resource.data.blockerId == request.auth.uid;
+    }
+
+    match /chats/{chatId} {
+      allow read: if isChatMember(chatId);
+      allow create: if isAuthed() &&
+        request.resource.data.createdBy == request.auth.uid &&
+        request.resource.data.memberIds.hasAny([request.auth.uid]);
+      allow update, delete: if isAuthed() && resource.data.createdBy == request.auth.uid;
+    }
+
+    match /chat_members/{docId} {
+      allow read: if isAuthed() && isChatMember(resource.data.chatId);
+      allow create, update, delete: if false;
+    }
+
+    match /messages/{messageId} {
+      allow read: if isAuthed() && isChatMember(resource.data.chatId);
+      allow create, update, delete: if false;
+    }
+
+    match /reactions/{docId} {
+      allow read: if isAuthed() && isChatMember(resource.data.chatId);
+      allow create, update, delete: if false;
+    }
+
+    match /read_receipts/{docId} {
+      allow read: if isAuthed() && isChatMember(resource.data.chatId);
+      allow create, update, delete: if false;
+    }
+
+    match /presence/{userId} {
+      allow read: if isAuthed();
+      allow write: if isOwner(userId);
+    }
+
+    match /moderation_reports/{docId} {
+      allow read, create: if isAuthed();
+      allow update, delete: if false;
+    }
+
+    match /notifications/{docId} {
+      allow read: if isAuthed() && resource.data.userId == request.auth.uid;
+      allow create, update: if isAuthed() && request.auth.uid == request.resource.data.userId;
+      allow delete: if isAuthed() && resource.data.userId == request.auth.uid;
+    }
+
+    match /attachments/{docId} {
+      allow read: if isAuthed() && isChatMember(resource.data.chatId);
+      allow write: if false;
+    }
+  }
+}
