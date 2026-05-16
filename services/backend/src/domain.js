@@ -1,4 +1,5 @@
 import { assertNotBlocked, assertRateLimit, assertChatMembership, assertAdminRole } from "./guards.js";
+import { randomUUID } from "node:crypto";
 
 function now() {
   return Date.now();
@@ -19,7 +20,7 @@ export function sendMessagePrivileged({ senderId, chat, text, blocks, countPerMi
   }
 
   return {
-    id: `m-${now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: `m-${randomUUID()}`,
     chatId: chat.id,
     senderId,
     text: cleaned,
@@ -75,7 +76,7 @@ export function createGroupChannel({ actorId, name, memberIds, countPerMinute })
   if (!uniqueMembers.length) throw new Error("Channel must include members");
 
   return {
-    id: `ch-${now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: `ch-${randomUUID()}`,
     type: "group",
     name: channelName,
     memberIds: uniqueMembers,
@@ -98,7 +99,7 @@ export function addMessageReaction({ actorId, message, emoji, chat, blocks, coun
   if (!normalizedEmoji || normalizedEmoji.length > 8) throw new Error("Invalid emoji payload");
 
   return {
-    id: `r-${now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: `r-${randomUUID()}`,
     messageId: message.id,
     chatId: message.chatId,
     userId: actorId,
@@ -113,7 +114,7 @@ export function addMessageReaction({ actorId, message, emoji, chat, blocks, coun
 export function markMessageRead({ actorId, chat, messageId }) {
   assertChatMembership({ chat, userId: actorId });
   return {
-    id: `rr-${now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: `rr-${randomUUID()}`,
     messageId,
     chatId: chat.id,
     userId: actorId,

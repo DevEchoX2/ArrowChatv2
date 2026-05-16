@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import fastifyCookie from "@fastify/cookie";
 import fastifyWebsocket from "@fastify/websocket";
+import { randomUUID } from "node:crypto";
 import {
   addMessageReaction,
   blockUser,
@@ -43,7 +44,7 @@ function now() {
 }
 
 function createId(prefix) {
-  return `${prefix}-${now()}-${Math.random().toString(36).slice(2, 10)}`;
+  return `${prefix}-${randomUUID()}`;
 }
 
 function parseRequestBody(request) {
