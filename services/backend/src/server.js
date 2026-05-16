@@ -326,7 +326,7 @@ export async function createApp({ env = process.env } = {}) {
     const filtered = before ? source.filter((m) => m.createdAt < before) : source;
     const items = filtered.slice(0, limit);
 
-    const hasMore = filtered.length > items.length;
+    const hasMore = filtered.length > limit;
     const nextBefore = hasMore && items.length ? items[items.length - 1].createdAt : null;
 
     const wantsV2 =
