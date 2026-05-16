@@ -10,6 +10,9 @@ on:
       - "services/backend/**"
       - ".github/workflows/backend-ci.yml"
 
+permissions:
+  contents: read
+
 jobs:
   test-backend:
     runs-on: ubuntu-latest
