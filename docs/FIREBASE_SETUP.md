@@ -11,20 +11,20 @@
 5. Keep config outside source code; use environment-specific config injection.
 
 ## Client config contract
-The frontend reads runtime config from `window.__ARROWCHAT_FIREBASE_CONFIG__`.
+The frontend reads runtime config from `window.__APP_RUNTIME_CONFIG__` (legacy fallback: `window.__ARROWCHAT_FIREBASE_CONFIG__`).
 
 Inject runtime config in your deployment template (recommended) or add a local script before `src/main.js`:
 
 ```html
 <script>
-window.__ARROWCHAT_FIREBASE_CONFIG__ = { /* values */ };
+window.__APP_RUNTIME_CONFIG__ = { /* values */ };
 </script>
 ```
 
 Local file option (`apps/web/config.local.js`, do not commit):
 
 ```js
-window.__ARROWCHAT_FIREBASE_CONFIG__ = {
+window.__APP_RUNTIME_CONFIG__ = {
   apiKey: "...",
   authDomain: "...",
   projectId: "...",

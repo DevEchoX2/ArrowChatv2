@@ -1,7 +1,7 @@
 export const NAV_ITEMS = [
-  { key: "global", label: "Global Chat", icon: "globe" },
-  { key: "dms", label: "DMs", icon: "messages-square" },
-  { key: "channels", label: "Group Channels", icon: "hash" },
+  { key: "global", label: "Lobby", icon: "globe" },
+  { key: "dms", label: "Direct", icon: "messages-square" },
+  { key: "channels", label: "Channels", icon: "hash" },
   { key: "reactions", label: "Reactions", icon: "smile-plus" },
   { key: "receipts", label: "Read Receipts", icon: "check-check" },
   { key: "moderation", label: "Moderation", icon: "shield" },

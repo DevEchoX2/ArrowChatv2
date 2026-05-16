@@ -3,10 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ArrowChat v2</title>
+    <title>Private Workspace</title>
     <link rel="stylesheet" href="./styles/theme.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script>window.__ARROWCHAT_FIREBASE_CONFIG__ = window.__ARROWCHAT_FIREBASE_CONFIG__ || null;</script>
+    <script>
+      window.__APP_RUNTIME_CONFIG__ = window.__APP_RUNTIME_CONFIG__ || window.__ARROWCHAT_FIREBASE_CONFIG__ || null;
+    </script>
   </head>
   <body>
     <div id="app" class="app-shell"></div>

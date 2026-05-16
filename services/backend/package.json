@@ -1,0 +1,20 @@
+{
+  "name": "arrowchat-private-backend",
+  "version": "1.0.0",
+  "description": "Single private backend for VPS deployment",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/websocket": "^11.2.0",
+    "fastify": "^5.8.5"
+  }
+}

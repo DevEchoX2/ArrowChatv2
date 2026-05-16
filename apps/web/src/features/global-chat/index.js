@@ -12,7 +12,7 @@ export function renderGlobalChat(state) {
 
   return `
     <div class="header-row">
-      <h2>Global Chat</h2>
+      <h2>Lobby</h2>
       <button data-action="pin-latest">Pin Latest</button>
     </div>
     <div class="card">
@@ -22,7 +22,7 @@ export function renderGlobalChat(state) {
     </div>
     <div class="list">${list}</div>
     <div class="card">
-      <textarea id="global-message" placeholder="Message global chat..."></textarea>
+      <textarea id="global-message" placeholder="Send a lobby message..."></textarea>
       <div class="row" style="margin-top:8px;"><button class="primary" data-action="send-global">Send</button></div>
     </div>
   `;
