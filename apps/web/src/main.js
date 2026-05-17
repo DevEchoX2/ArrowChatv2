@@ -1,4 +1,5 @@
 import { sanitizeText } from "../../../shared/utils/sanitize.js";
+import { getApiBaseUrl } from "./core/config.js";
 
 const app = document.getElementById("app");
 
@@ -33,12 +34,29 @@ const NAV = [
 ];
 
 function wsUrl() {
+  const apiBase = getApiBaseUrl();
+  if (apiBase) {
+    try {
+      const parsed = new URL(apiBase, window.location.origin);
+      const proto = parsed.protocol === "https:" ? "wss:" : "ws:";
+      return `${proto}//${parsed.host}/ws`;
+    } catch (_error) {
+      // Invalid apiBase config falls back to same-origin ws URL.
+    }
+  }
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
   return `${proto}//${window.location.host}/ws`;
 }
 
+function withApiBase(path) {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const base = getApiBaseUrl();
+  if (!base) return normalizedPath;
+  return `${base}${normalizedPath}`;
+}
+
 async function api(path, options = {}) {
-  const response = await fetch(path, {
+  const response = await fetch(withApiBase(path), {
     credentials: "include",
     headers: { "content-type": "application/json", ...(options.headers || {}) },
     ...options
