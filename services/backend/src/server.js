@@ -141,7 +141,7 @@ export async function createApp({ env = process.env } = {}) {
   });
 
   const sessions = new Map(); // sessionId -> { userId, expiresAt }
-  const usernamesTaken = new Set();
+  const registeredUsers = new Set();
   const idempotentMessages = new Map(); // userId:key -> { message, createdAt }
   const presenceByUser = new Map();
   const countsByUser = new Map();
@@ -253,6 +253,40 @@ export async function createApp({ env = process.env } = {}) {
     ].join("\n");
   });
 
+  app.post("/api/auth/signup", async (request, reply) => {
+    const body = parseRequestBody(request);
+    const password = String(body.password || "");
+    const userId = normalizeUserId(body.userId || "");
+
+    if (password !== config.accessPassword) {
+      throw httpError(401, "Invalid credentials");
+    }
+    if (registeredUsers.has(userId)) {
+      throw httpError(409, "Username already taken");
+    }
+
+    registeredUsers.add(userId);
+
+    const sessionId = createId("sess");
+    sessions.set(sessionId, {
+      userId,
+      expiresAt: now() + config.sessionTtlSeconds * 1000
+    });
+    ensureGlobalMembership(userId);
+
+    reply.setCookie(SESSION_COOKIE_NAME, sessionId, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: config.cookieSecure,
+      maxAge: config.sessionTtlSeconds,
+      signed: false,
+      path: "/"
+    });
+
+    withAudit(auditLog, { type: "auth.signup", actorId: userId });
+    return { ok: true, userId };
+  });
+
   app.post("/api/auth/session", async (request, reply) => {
     const body = parseRequestBody(request);
     const password = String(body.password || "");
@@ -261,8 +295,8 @@ export async function createApp({ env = process.env } = {}) {
     if (password !== config.accessPassword) {
       throw httpError(401, "Invalid credentials");
     }
-    if (usernamesTaken.has(userId)) {
-      throw httpError(409, "Username already taken");
+    if (!registeredUsers.has(userId)) {
+      throw httpError(404, "Account not found. Sign up first");
     }
 
     const sessionId = createId("sess");
@@ -270,7 +304,6 @@ export async function createApp({ env = process.env } = {}) {
       userId,
       expiresAt: now() + config.sessionTtlSeconds * 1000
     });
-    usernamesTaken.add(userId);
     ensureGlobalMembership(userId);
 
     reply.setCookie(SESSION_COOKIE_NAME, sessionId, {
@@ -312,7 +345,7 @@ export async function createApp({ env = process.env } = {}) {
   app.get("/api/users", async (request) => {
     requireSession(request);
     const q = String(request.query?.q || "").trim().toLowerCase();
-    const users = [...usernamesTaken.values()].filter((id) => (q ? id.includes(q) : true));
+    const users = [...registeredUsers.values()].filter((id) => (q ? id.includes(q) : true));
     return users.slice(0, 50).map((id) => ({ userId: id }));
   });
 
@@ -321,7 +354,7 @@ export async function createApp({ env = process.env } = {}) {
     const body = parseRequestBody(request);
     const peerId = normalizeUserId(body.peerId || "");
     if (peerId === userId) throw httpError(400, "Cannot DM yourself");
-    if (!usernamesTaken.has(peerId)) throw httpError(404, "User not found");
+    if (!registeredUsers.has(peerId)) throw httpError(404, "User not found");
 
     const members = [userId, peerId].sort();
     const dmId = `dm-${members[0]}-${members[1]}`;
@@ -629,7 +662,7 @@ export async function createApp({ env = process.env } = {}) {
         "call-end"
       ]);
 
-      if (!allowedSignalEvents.has(type) || !targetId || targetId === userId || !usernamesTaken.has(targetId)) return;
+      if (!allowedSignalEvents.has(type) || !targetId || targetId === userId || !registeredUsers.has(targetId)) return;
 
       const chatId = String(payload?.chatId || "").trim();
       const chat = chatsById.get(chatId);

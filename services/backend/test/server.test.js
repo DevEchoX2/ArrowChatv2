@@ -19,20 +19,20 @@ function cookieFromLogin(response) {
   return setCookie.split(";")[0];
 }
 
-async function login(app, userId = "owner") {
-  const loginResponse = await app.inject({
+async function signUp(app, userId = "owner") {
+  const signupResponse = await app.inject({
     method: "POST",
-    url: "/api/auth/session",
+    url: "/api/auth/signup",
     payload: { password: BASE_ENV.PRIVATE_ACCESS_PASSWORD, userId }
   });
-  assert.equal(loginResponse.statusCode, 200);
-  return cookieFromLogin(loginResponse);
+  assert.equal(signupResponse.statusCode, 200);
+  return cookieFromLogin(signupResponse);
 }
 
 test("session auth works for /api/me", async () => {
   const { app } = await createApp({ env: BASE_ENV });
   try {
-    const cookie = await login(app);
+    const cookie = await signUp(app);
 
     const response = await app.inject({
       method: "GET",
@@ -50,7 +50,7 @@ test("session auth works for /api/me", async () => {
 test("idempotent message post and paginated reads", async () => {
   const { app } = await createApp({ env: BASE_ENV });
   try {
-    const cookie = await login(app);
+    const cookie = await signUp(app);
 
     const first = await app.inject({
       method: "POST",
@@ -127,23 +127,23 @@ test("/api/ready returns 503 for invalid production runtime config", async () =>
   }
 });
 
-test("username is unique and cannot be reused", async () => {
+test("user can sign up then sign in with same username", async () => {
   const { app } = await createApp({ env: BASE_ENV });
   try {
-    const first = await app.inject({
+    const signUpResponse = await app.inject({
       method: "POST",
-      url: "/api/auth/session",
+      url: "/api/auth/signup",
       payload: { password: BASE_ENV.PRIVATE_ACCESS_PASSWORD, userId: "sam" }
     });
-    assert.equal(first.statusCode, 200);
+    assert.equal(signUpResponse.statusCode, 200);
 
-    const second = await app.inject({
+    const signInResponse = await app.inject({
       method: "POST",
       url: "/api/auth/session",
       payload: { password: BASE_ENV.PRIVATE_ACCESS_PASSWORD, userId: "sam" }
     });
-    assert.equal(second.statusCode, 409);
-    assert.equal(second.json().ok, false);
+    assert.equal(signInResponse.statusCode, 200);
+    assert.equal(signInResponse.json().ok, true);
   } finally {
     await app.close();
   }
@@ -152,8 +152,8 @@ test("username is unique and cannot be reused", async () => {
 test("can create and list DM chats for members", async () => {
   const { app } = await createApp({ env: BASE_ENV });
   try {
-    const ownerCookie = await login(app, "owner");
-    await login(app, "alex");
+    const ownerCookie = await signUp(app, "owner");
+    await signUp(app, "alex");
 
     const dm = await app.inject({
       method: "POST",

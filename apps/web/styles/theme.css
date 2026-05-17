@@ -27,6 +27,11 @@ body {
   padding: 14px;
 }
 
+.app-shell.auth-mode {
+  grid-template-columns: 1fr;
+  padding: 0;
+}
+
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
@@ -163,6 +168,10 @@ button.active {
   padding: 20px;
   display: grid;
   gap: 10px;
+}
+
+.auth-mode-toggle {
+  justify-content: center;
 }
 
 .error {

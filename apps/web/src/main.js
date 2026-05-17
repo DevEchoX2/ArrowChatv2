@@ -53,36 +53,45 @@ async function api(path, options = {}) {
   return response.json();
 }
 
-function renderLogin(error = "") {
+function renderLogin(error = "", mode = "signin") {
+  const isSignUp = mode === "signup";
+  app.classList.add("auth-mode");
   app.innerHTML = `
     <div class="login-shell">
       <div class="panel login-panel">
         <h1>ArrowChat</h1>
-        <p class="subtle">Claim a username before entering chat.</p>
+        <div class="row auth-mode-toggle">
+          <button class="${isSignUp ? "" : "primary"}" id="signin-tab">Sign In</button>
+          <button class="${isSignUp ? "primary" : ""}" id="signup-tab">Sign Up</button>
+        </div>
+        <p class="subtle">${isSignUp ? "Create your account to enter chat." : "Sign in to your existing account."}</p>
         <input id="username" placeholder="username (a-z, 0-9, _, -)" />
         <input id="password" type="password" placeholder="access password" />
-        <button class="primary" id="login-btn">Enter Workspace</button>
+        <button class="primary" id="login-btn">${isSignUp ? "Create Account" : "Sign In"}</button>
         <div class="error">${sanitizeText(error)}</div>
       </div>
     </div>
   `;
 
+  app.querySelector("#signin-tab")?.addEventListener("click", () => renderLogin("", "signin"));
+  app.querySelector("#signup-tab")?.addEventListener("click", () => renderLogin("", "signup"));
   app.querySelector("#login-btn")?.addEventListener("click", async () => {
     const userId = String(app.querySelector("#username")?.value || "").trim().toLowerCase();
     const password = String(app.querySelector("#password")?.value || "");
     try {
-      await api("/api/auth/session", {
+      await api(isSignUp ? "/api/auth/signup" : "/api/auth/session", {
         method: "POST",
         body: JSON.stringify({ userId, password })
       });
       await bootApp();
     } catch (err) {
-      renderLogin(String(err.message || "Login failed"));
+      renderLogin(String(err.message || "Login failed"), mode);
     }
   });
 }
 
 function renderShell() {
+  app.classList.remove("auth-mode");
   app.innerHTML = `
     <aside class="panel nav">
       <div class="brand">ArrowChat</div>
