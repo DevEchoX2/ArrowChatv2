@@ -1,3 +1,5 @@
+const DEFAULT_LOCAL_BACKEND_PORT = "3001";
+
 function getRuntimeConfigObject() {
   const cfg = window.__APP_RUNTIME_CONFIG__ || window.__ARROWCHAT_FIREBASE_CONFIG__ || null;
   return cfg && typeof cfg === "object" ? cfg : null;
@@ -28,8 +30,8 @@ export function getApiBaseUrl() {
 
   const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
   const currentPort = String(window.location.port || "");
-  if (isLocalHost && currentPort && currentPort !== "3001") {
-    return `${window.location.protocol}//${window.location.hostname}:3001`;
+  if (isLocalHost && currentPort && currentPort !== DEFAULT_LOCAL_BACKEND_PORT) {
+    return `${window.location.protocol}//${window.location.hostname}:${DEFAULT_LOCAL_BACKEND_PORT}`;
   }
 
   return "";

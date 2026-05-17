@@ -40,8 +40,8 @@ function wsUrl() {
       const parsed = new URL(apiBase, window.location.origin);
       const proto = parsed.protocol === "https:" ? "wss:" : "ws:";
       return `${proto}//${parsed.host}/ws`;
-    } catch {
-      // fall back to same-origin ws URL
+    } catch (_error) {
+      // Invalid apiBase config falls back to same-origin ws URL.
     }
   }
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
