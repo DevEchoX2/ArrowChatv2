@@ -7,6 +7,7 @@ This is the single backend service for private hosting.
 - Fastify
 - `@fastify/websocket`
 - `@fastify/cookie`
+- `@fastify/static`
 
 ## Run
 ```bash
@@ -16,6 +17,8 @@ PRIVATE_ACCESS_PASSWORD='replace-with-strong-password' SESSION_SECRET='replace-w
 ```
 
 By default the backend listens on `127.0.0.1:3001`.
+
+Open `http://localhost:3001/` in your browser — the backend serves the frontend (`apps/web/`) on the same origin so API calls resolve correctly.
 
 ## Authentication
 - `POST /api/auth/session` with `{ "password": "...", "userId": "yourname" }`
