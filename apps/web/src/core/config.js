@@ -6,7 +6,12 @@ function getRuntimeConfigObject() {
 function normalizeBaseUrl(value) {
   const raw = String(value || "").trim();
   if (!raw) return "";
-  return raw.replace(/\/+$/, "");
+  try {
+    new URL(raw, window.location.origin);
+    return raw.replace(/\/+$/, "");
+  } catch {
+    return "";
+  }
 }
 
 export function getFirebaseRuntimeConfig() {
@@ -15,7 +20,7 @@ export function getFirebaseRuntimeConfig() {
 
 export function getApiBaseUrl() {
   const cfg = getRuntimeConfigObject();
-  const fromConfig = normalizeBaseUrl(cfg?.apiBaseUrl || cfg?.apiBaseURL || "");
+  const fromConfig = normalizeBaseUrl(cfg?.apiBaseUrl || "");
   if (fromConfig) return fromConfig;
 
   const fromWindow = normalizeBaseUrl(window.__APP_API_BASE_URL__);
