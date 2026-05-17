@@ -144,6 +144,8 @@ test("user can sign up then sign in with same username", async () => {
     });
     assert.equal(signInResponse.statusCode, 200);
     assert.equal(signInResponse.json().ok, true);
+    assert.equal(signInResponse.json().userId, "sam");
+    assert.ok(cookieFromLogin(signInResponse).startsWith("workspace_session="));
   } finally {
     await app.close();
   }

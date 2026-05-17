@@ -296,7 +296,7 @@ export async function createApp({ env = process.env } = {}) {
       throw httpError(401, "Invalid credentials");
     }
     if (!registeredUsers.has(userId)) {
-      throw httpError(404, "Account not found. Sign up first");
+      throw httpError(404, "Account not found: sign up first");
     }
 
     const sessionId = createId("sess");
@@ -315,7 +315,7 @@ export async function createApp({ env = process.env } = {}) {
       path: "/"
     });
 
-    withAudit(auditLog, { type: "auth.login", actorId: userId });
+    withAudit(auditLog, { type: "auth.signin", actorId: userId });
     return { ok: true, userId };
   });
 

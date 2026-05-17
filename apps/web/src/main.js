@@ -85,7 +85,7 @@ function renderLogin(error = "", mode = "signin") {
       });
       await bootApp();
     } catch (err) {
-      renderLogin(String(err.message || "Login failed"), mode);
+      renderLogin(String(err.message || (isSignUp ? "Sign up failed" : "Sign in failed")), mode);
     }
   });
 }
