@@ -44,6 +44,14 @@ function parseTimestamp(input) {
   return value;
 }
 
+function normalizeUserId(input) {
+  const value = String(input || "").trim().toLowerCase();
+  if (!/^[a-z0-9_-]{3,24}$/.test(value)) {
+    throw httpError(400, "Username must be 3-24 chars (a-z, 0-9, _, -)");
+  }
+  return value;
+}
+
 function httpError(statusCode, message) {
   const error = new Error(message);
   error.statusCode = statusCode;
@@ -123,10 +131,11 @@ export async function createApp({ env = process.env } = {}) {
   await app.register(fastifyWebsocket);
 
   const sessions = new Map(); // sessionId -> { userId, expiresAt }
+  const usernamesTaken = new Set();
   const idempotentMessages = new Map(); // userId:key -> { message, createdAt }
   const presenceByUser = new Map();
   const countsByUser = new Map();
-  const chatsById = new Map([["global", { id: "global", memberIds: [] }]]);
+  const chatsById = new Map([["global", { id: "global", type: "global", name: "Global Chat", memberIds: [] }]]);
   const messages = [];
   const relationships = [];
   const blocks = [];
@@ -135,6 +144,10 @@ export async function createApp({ env = process.env } = {}) {
   const readReceipts = [];
   const moderationReports = [{ id: "rpt-1", messageId: "m-1", reason: "spam", status: "open" }];
   const auditLog = [];
+  const announcements = [
+    { id: "ann-1", title: "Welcome", body: "Private workspace is live on your VPS.", createdAt: now() }
+  ];
+  const updateLogs = [{ id: "upd-1", body: "Initial production chat stack available.", createdAt: now() }];
 
   function cleanupExpiredIdempotency() {
     const threshold = now() - IDEMPOTENCY_TTL_MS;
@@ -233,11 +246,13 @@ export async function createApp({ env = process.env } = {}) {
   app.post("/api/auth/session", async (request, reply) => {
     const body = parseRequestBody(request);
     const password = String(body.password || "");
-    const requestedUser = String(body.userId || "owner").trim().toLowerCase();
-    const userId = requestedUser || "owner";
+    const userId = normalizeUserId(body.userId || "");
 
     if (password !== config.accessPassword) {
       throw httpError(401, "Invalid credentials");
+    }
+    if (usernamesTaken.has(userId)) {
+      throw httpError(409, "Username already taken");
     }
 
     const sessionId = createId("sess");
@@ -245,6 +260,7 @@ export async function createApp({ env = process.env } = {}) {
       userId,
       expiresAt: now() + config.sessionTtlSeconds * 1000
     });
+    usernamesTaken.add(userId);
     ensureGlobalMembership(userId);
 
     reply.setCookie(SESSION_COOKIE_NAME, sessionId, {
@@ -276,6 +292,43 @@ export async function createApp({ env = process.env } = {}) {
   app.get("/api/me", async (request) => {
     const { userId } = requireSession(request);
     return { userId, hasSession: true };
+  });
+
+  app.get("/api/chats", async (request) => {
+    const { userId } = requireSession(request);
+    return [...chatsById.values()].filter((chat) => (chat.memberIds || []).includes(userId));
+  });
+
+  app.get("/api/users", async (request) => {
+    requireSession(request);
+    const q = String(request.query?.q || "").trim().toLowerCase();
+    const users = [...usernamesTaken.values()].filter((id) => (q ? id.includes(q) : true));
+    return users.slice(0, 50).map((id) => ({ userId: id }));
+  });
+
+  app.post("/api/dms", async (request) => {
+    const { userId } = requireSession(request);
+    const body = parseRequestBody(request);
+    const peerId = normalizeUserId(body.peerId || "");
+    if (peerId === userId) throw httpError(400, "Cannot DM yourself");
+    if (!usernamesTaken.has(peerId)) throw httpError(404, "User not found");
+
+    const members = [userId, peerId].sort();
+    const dmId = `dm-${members[0]}-${members[1]}`;
+    const existing = chatsById.get(dmId);
+    if (existing) return existing;
+
+    const dmChat = {
+      id: dmId,
+      type: "direct",
+      name: `${members[0]} & ${members[1]}`,
+      memberIds: members,
+      createdBy: userId,
+      createdAt: now(),
+      updatedAt: now()
+    };
+    chatsById.set(dmId, dmChat);
+    return dmChat;
   });
 
   app.post("/api/messages", async (request) => {
@@ -503,7 +556,22 @@ export async function createApp({ env = process.env } = {}) {
     return auditLog.slice(0, 200);
   });
 
+  app.get("/api/announcements", async (request) => {
+    requireSession(request);
+    return { announcements, updateLogs };
+  });
+
   const wsClients = new Map();
+  const wsByUser = new Map();
+
+  function sendToUser(targetId, payload) {
+    const clients = wsByUser.get(targetId);
+    if (!clients) return;
+    const encoded = JSON.stringify(payload);
+    clients.forEach((client) => {
+      if (client.readyState === 1) client.send(encoded);
+    });
+  }
 
   app.get("/ws", { websocket: true }, (socket, request) => {
     const sessionId = request.cookies?.[SESSION_COOKIE_NAME];
@@ -516,6 +584,8 @@ export async function createApp({ env = process.env } = {}) {
     const userId = session.userId;
     ensureGlobalMembership(userId);
     wsClients.set(socket, userId);
+    if (!wsByUser.has(userId)) wsByUser.set(userId, new Set());
+    wsByUser.get(userId).add(socket);
     socket.send(JSON.stringify({ type: "welcome", userId }));
 
     socket.on("message", (raw) => {
@@ -526,26 +596,54 @@ export async function createApp({ env = process.env } = {}) {
         return;
       }
 
-      const text = String(payload?.text || "").trim();
-      if (!text || text.length > 500) return;
+      if (payload?.type === "chat") {
+        const text = String(payload?.text || "").trim();
+        if (!text || text.length > 500) return;
+        const event = { type: "chat", id: createId("ws"), userId, text, createdAt: now() };
+        const encoded = JSON.stringify(event);
+        wsClients.forEach((_uid, client) => {
+          if (client.readyState === 1) client.send(encoded);
+        });
+        return;
+      }
 
-      const event = {
-        type: "chat",
-        id: createId("ws"),
-        userId,
-        text,
+      const type = String(payload?.type || "").trim();
+      const targetId = String(payload?.targetId || "").trim().toLowerCase();
+      const allowedSignalEvents = new Set([
+        "call-request",
+        "call-accept",
+        "call-decline",
+        "webrtc-offer",
+        "webrtc-answer",
+        "webrtc-ice",
+        "call-end"
+      ]);
+
+      if (!allowedSignalEvents.has(type) || !targetId || targetId === userId || !usernamesTaken.has(targetId)) return;
+
+      const chatId = String(payload?.chatId || "").trim();
+      const chat = chatsById.get(chatId);
+      if (!chat || !chat.memberIds.includes(userId) || !chat.memberIds.includes(targetId)) return;
+
+      sendToUser(targetId, {
+        type,
+        fromUserId: userId,
+        targetId,
+        chatId,
+        data: payload?.data || null,
         createdAt: now()
-      };
-      const encoded = JSON.stringify(event);
-      wsClients.forEach((_uid, client) => {
-        if (client.readyState === 1) {
-          client.send(encoded);
-        }
       });
     });
 
     socket.on("close", () => {
       wsClients.delete(socket);
+      const sockets = wsByUser.get(userId);
+      if (sockets) {
+        sockets.delete(socket);
+        if (!sockets.size) {
+          wsByUser.delete(userId);
+        }
+      }
     });
   });
 

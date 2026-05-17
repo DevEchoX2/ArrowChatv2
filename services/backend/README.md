@@ -18,15 +18,19 @@ PRIVATE_ACCESS_PASSWORD='replace-with-strong-password' SESSION_SECRET='replace-w
 By default the backend listens on `127.0.0.1:3001`.
 
 ## Authentication
-- `POST /api/auth/session` with `{ "password": "...", "userId": "owner" }`
+- `POST /api/auth/session` with `{ "password": "...", "userId": "yourname" }`
 - Session is set in an httpOnly cookie (`workspace_session`)
 - `POST /api/auth/logout` clears the session
+- Usernames are claimed at login and cannot be reused while the process is running
 
 ## API surface
 - `GET /api/health`
 - `GET /api/ready`
 - `GET /api/metrics`
 - `GET /api/me`
+- `GET /api/users` (active/claimed usernames for discovery)
+- `GET /api/chats` (caller-visible chats)
+- `POST /api/dms` (create/reuse direct chat with another username)
 - `GET /api/messages` (supports `v=2`, `limit`, `before` for paginated reads)
 - `POST /api/messages` (supports `Idempotency-Key` for retry-safe writes)
 - `POST /api/friends/request`
@@ -40,7 +44,10 @@ By default the backend listens on `127.0.0.1:3001`.
 - `GET /api/search`
 - `GET /api/sync`
 - `GET /api/audit`
+- `GET /api/announcements`
 - `GET /ws` (websocket)
+
+WebSocket also carries secure user-to-user call signaling events (`call-request`, `call-accept`, `call-decline`, `webrtc-offer`, `webrtc-answer`, `webrtc-ice`, `call-end`) for P2P voice/video setup.
 
 ## Production config guardrails
 - `PRIVATE_ACCESS_PASSWORD` must be at least 12 chars.
