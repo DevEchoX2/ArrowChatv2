@@ -1,8 +1,10 @@
 import Fastify from "fastify";
 import fastifyCookie from "@fastify/cookie";
+import fastifyStatic from "@fastify/static";
 import fastifyWebsocket from "@fastify/websocket";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
+import { join, dirname } from "node:path";
 import {
   addMessageReaction,
   blockUser,
@@ -66,6 +68,7 @@ function normalizeEnv(env = process.env) {
   const sessionTtlSeconds = parsePositiveInteger(env.SESSION_TTL_SECONDS, 86400);
   const cookieSecure = env.COOKIE_SECURE !== "false";
   const nodeEnv = env.NODE_ENV || "development";
+  const webRoot = env.WEB_ROOT || join(dirname(fileURLToPath(import.meta.url)), "../../../apps/web");
 
   return {
     host,
@@ -74,7 +77,8 @@ function normalizeEnv(env = process.env) {
     sessionSecret,
     sessionTtlSeconds,
     cookieSecure,
-    nodeEnv
+    nodeEnv,
+    webRoot
   };
 }
 
@@ -129,6 +133,12 @@ export async function createApp({ env = process.env } = {}) {
     secret: config.sessionSecret
   });
   await app.register(fastifyWebsocket);
+
+  await app.register(fastifyStatic, {
+    root: config.webRoot,
+    prefix: "/",
+    decorateReply: true
+  });
 
   const sessions = new Map(); // sessionId -> { userId, expiresAt }
   const usernamesTaken = new Set();
@@ -645,6 +655,15 @@ export async function createApp({ env = process.env } = {}) {
         }
       }
     });
+  });
+
+  // SPA fallback: serve index.html for all non-API, non-WS GET requests
+  app.setNotFoundHandler((request, reply) => {
+    if (request.url.startsWith("/api/") || request.url.startsWith("/ws")) {
+      reply.code(404).send({ ok: false, error: "Not found" });
+      return;
+    }
+    reply.sendFile("index.html");
   });
 
   return { app, config, runtimeValidation };
