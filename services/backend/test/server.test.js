@@ -19,11 +19,11 @@ function cookieFromLogin(response) {
   return setCookie.split(";")[0];
 }
 
-async function login(app) {
+async function login(app, userId = "owner") {
   const loginResponse = await app.inject({
     method: "POST",
     url: "/api/auth/session",
-    payload: { password: BASE_ENV.PRIVATE_ACCESS_PASSWORD, userId: "owner" }
+    payload: { password: BASE_ENV.PRIVATE_ACCESS_PASSWORD, userId }
   });
   assert.equal(loginResponse.statusCode, 200);
   return cookieFromLogin(loginResponse);
@@ -122,6 +122,57 @@ test("/api/ready returns 503 for invalid production runtime config", async () =>
     const response = await app.inject({ method: "GET", url: "/api/ready" });
     assert.equal(response.statusCode, 503);
     assert.equal(response.json().ok, false);
+  } finally {
+    await app.close();
+  }
+});
+
+test("username is unique and cannot be reused", async () => {
+  const { app } = await createApp({ env: BASE_ENV });
+  try {
+    const first = await app.inject({
+      method: "POST",
+      url: "/api/auth/session",
+      payload: { password: BASE_ENV.PRIVATE_ACCESS_PASSWORD, userId: "sam" }
+    });
+    assert.equal(first.statusCode, 200);
+
+    const second = await app.inject({
+      method: "POST",
+      url: "/api/auth/session",
+      payload: { password: BASE_ENV.PRIVATE_ACCESS_PASSWORD, userId: "sam" }
+    });
+    assert.equal(second.statusCode, 409);
+    assert.equal(second.json().ok, false);
+  } finally {
+    await app.close();
+  }
+});
+
+test("can create and list DM chats for members", async () => {
+  const { app } = await createApp({ env: BASE_ENV });
+  try {
+    const ownerCookie = await login(app, "owner");
+    await login(app, "alex");
+
+    const dm = await app.inject({
+      method: "POST",
+      url: "/api/dms",
+      headers: { cookie: ownerCookie },
+      payload: { peerId: "alex" }
+    });
+
+    assert.equal(dm.statusCode, 200);
+    assert.equal(dm.json().type, "direct");
+    assert.deepEqual(dm.json().memberIds.sort(), ["alex", "owner"]);
+
+    const chats = await app.inject({
+      method: "GET",
+      url: "/api/chats",
+      headers: { cookie: ownerCookie }
+    });
+    assert.equal(chats.statusCode, 200);
+    assert.ok(chats.json().some((chat) => chat.id === dm.json().id));
   } finally {
     await app.close();
   }
