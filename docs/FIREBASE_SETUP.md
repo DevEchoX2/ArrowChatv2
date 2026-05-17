@@ -25,6 +25,7 @@ Local file option (`apps/web/config.local.js`, do not commit):
 
 ```js
 window.__APP_RUNTIME_CONFIG__ = {
+  apiBaseUrl: "http://localhost:3001",
   apiKey: "...",
   authDomain: "...",
   projectId: "...",
@@ -35,6 +36,7 @@ window.__APP_RUNTIME_CONFIG__ = {
 ```
 
 This object must be present before `src/main.js` executes.
+`apiBaseUrl` is optional and can be used when the web app is served from a different origin than the backend.
 
 ## Deploy rules
 Use files in `infra/firebase`:
