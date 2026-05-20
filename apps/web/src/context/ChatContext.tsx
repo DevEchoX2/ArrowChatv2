@@ -46,6 +46,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   );
 
   const wsRef = useRef<WebSocket | null>(null);
+  const activeDmUserIdRef = useRef<string | null>(null);
+
+  // Keep the ref in sync with state so the WS onmessage handler never captures
+  // a stale closure value.
+  useEffect(() => {
+    activeDmUserIdRef.current = activeDmUserId;
+  }, [activeDmUserId]);
 
   // ── WebSocket connection ────────────────────────────────────────────────
   useEffect(() => {
@@ -87,7 +94,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                     lastMessage: payload.message.content,
                     lastActivity: payload.message.timestamp,
                     unreadCount:
-                      activeDmUserId === key ? 0 : p.unreadCount + 1,
+                      activeDmUserIdRef.current === key ? 0 : p.unreadCount + 1,
                   }
                 : p
             )
@@ -101,7 +108,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     return () => {
       ws.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Send helpers ────────────────────────────────────────────────────────

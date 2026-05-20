@@ -47,7 +47,12 @@ export function MessageList({ messages }: Props) {
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-y-auto px-4 py-2 space-y-1">
+    <div
+      role="log"
+      aria-label="Messages"
+      aria-live="polite"
+      className="flex flex-1 flex-col overflow-y-auto px-4 py-2 space-y-1"
+    >
       {groups.map((group) => (
         <React.Fragment key={group.date}>
           {/* Date divider */}
