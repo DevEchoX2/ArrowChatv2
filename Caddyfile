@@ -1,0 +1,36 @@
+# ─── ArrowChat · Caddyfile ───────────────────────────────────────────────────
+#
+# Replace {YOUR_DOMAIN} with your actual domain name.
+# Caddy automatically provisions Let's Encrypt TLS certificates.
+#
+# VPS deployment:
+#   1. Install Caddy: https://caddyserver.com/docs/install
+#   2. Copy this file to /etc/caddy/Caddyfile  (or run with: caddy run --config Caddyfile)
+#   3. Start the Next.js app:  cd apps/web && npm run start  (port 3000)
+#   4. Reload Caddy:  systemctl reload caddy
+# ─────────────────────────────────────────────────────────────────────────────
+
+{YOUR_DOMAIN} {
+    # Reverse-proxy all traffic to the Next.js app
+    reverse_proxy localhost:3000
+
+    # Compress responses
+    encode zstd gzip
+
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options    "nosniff"
+        X-Frame-Options           "SAMEORIGIN"
+        Referrer-Policy           "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    # WebSocket upgrade for /ws path (real-time chat)
+    @ws {
+        path /ws
+        header Connection *Upgrade*
+        header Upgrade    websocket
+    }
+    reverse_proxy @ws localhost:3000
+}

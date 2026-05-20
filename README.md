@@ -1,40 +1,62 @@
-# Private Chat Dashboard
+# ArrowChat
 
-A private chat dashboard scaffold with static frontend + single backend architecture.
+Sleek, minimalist bio-link and social platform inspired by Discord and Haunt.gg.
 
-## Structure
-- `apps/web`: frontend dashboard UI
-- `services/backend`: single VPS backend (Fastify + WebSocket)
-- `services/api`: legacy privileged operation reference (not deployed)
-- `shared`: shared constants/types/utilities
-- `infra/firebase`: Firebase rules/indexes/config templates
-- `docs`: setup and architecture documentation
+## Stack
 
-## Run frontend locally (static)
-From `apps/web`:
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 15 (App Router) + React 19 |
+| Styling | Tailwind CSS v4 |
+| Icons | Lucide-react |
+| Payments | Stripe |
+| Proxy | Caddy (automatic HTTPS) |
+| Deployment | VPS |
+
+## Features
+
+- **Bio Link Pages** (`/{username}`) — avatars, badges, reorderable social links, embedded media (premium)
+- **Global Chat** — real-time scrolling messages with user badges and timestamps
+- **Direct Messages** — per-user conversation threads with unread counts
+- **Premium Tier** — animated backgrounds, custom subdomains, TTS in chat, exclusive badges (gated via Stripe)
+
+## Development
 
 ```bash
-python -m http.server 8080
-```
-
-Then open `http://localhost:8080`.
-
-## Run backend locally
-From `services/backend`:
-
-```bash
+cd apps/web
+cp .env.example .env.local   # fill in Stripe keys
 npm install
-PRIVATE_ACCESS_PASSWORD='replace-me' SESSION_SECRET='replace-me' COOKIE_SECURE=false npm start
+npm run dev                  # http://localhost:3000
 ```
 
-Backend binds to `127.0.0.1:3001` by default.
+## Production (VPS + Caddy)
 
-## VPS deployment
-See `docs/VPS_DEPLOYMENT.md`.
+1. Build & start Next.js:
+   ```bash
+   cd apps/web
+   npm run build
+   npm run start              # listens on port 3000
+   ```
 
-## Production docs
-- `docs/PRODUCTION_SCOPE.md`
-- `docs/ARCHITECTURE.md`
-- `docs/OPERATIONS_RUNBOOK.md`
-- `docs/SECURITY_VERIFICATION.md`
-- `docs/PRODUCTION_READINESS_CHECKLIST.md`
+2. Edit `Caddyfile` — replace `{YOUR_DOMAIN}` with your domain.
+
+3. Install and start Caddy:
+   ```bash
+   sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+   # ... follow https://caddyserver.com/docs/install#debian-ubuntu-raspbian
+   sudo cp Caddyfile /etc/caddy/Caddyfile
+   sudo systemctl enable --now caddy
+   ```
+
+Caddy handles HTTPS automatically via Let's Encrypt.
+
+## Stripe Setup
+
+1. Create a Stripe account and add products for Monthly and Annual plans.
+2. Copy the price IDs into `.env.local`.
+3. Point your Stripe webhook to `https://your-domain.com/api/webhook` and set `STRIPE_WEBHOOK_SECRET`.
+
+## Environment Variables
+
+See `apps/web/.env.example` for all required variables.
