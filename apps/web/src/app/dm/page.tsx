@@ -1,0 +1,56 @@
+"use client";
+
+import Link from "next/link";
+import { DmSidebar } from "@/components/DmSidebar";
+import { MessageList } from "@/components/MessageList";
+import { ChatInput } from "@/components/ChatInput";
+import { useChat } from "@/context/ChatContext";
+import { Mail } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+
+export default function DirectMessagesPage() {
+  const { user } = useAuth();
+  const { dmPreviews, activeDmUserId, dmMessages, sendDM } = useChat();
+
+  if (!user) {
+    return (
+      <div className="flex flex-1 items-center justify-center text-sm text-white/30">
+        <Link className="underline" href="/login">
+          Sign in
+        </Link>
+        <span className="ml-1">to use direct messages.</span>
+      </div>
+    );
+  }
+
+  const activeDm = dmPreviews.find((u) => u.userId === activeDmUserId);
+  const messages = activeDmUserId ? (dmMessages[activeDmUserId] ?? []) : [];
+
+  return (
+    <div className="flex flex-1 overflow-hidden">
+      <DmSidebar previews={dmPreviews} />
+
+      {activeDm ? (
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <header className="flex items-center gap-3 border-b border-white/10 px-5 py-3">
+            <Mail size={16} className="text-white/50" />
+            <h2 className="text-sm font-semibold text-white/80">
+              {activeDm.displayName}
+            </h2>
+            <span className="text-[11px] text-white/30">@{activeDm.username}</span>
+          </header>
+
+          <MessageList messages={messages} />
+          <ChatInput
+            onSend={(content) => void sendDM(activeDm.userId, content)}
+            placeholder={`Message ${activeDm.displayName}…`}
+          />
+        </div>
+      ) : (
+        <div className="flex flex-1 items-center justify-center text-sm text-white/20">
+          Select a conversation to start messaging.
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,42 @@
+name: Web CI
+
+on:
+  push:
+    branches: [main, "copilot/**"]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/web-ci.yml"
+  pull_request:
+    paths:
+      - "apps/web/**"
+
+defaults:
+  run:
+    working-directory: apps/web
+
+jobs:
+  build:
+    name: Type-check & build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+        env:
+          # Stub required env vars so build succeeds without real Stripe keys
+          STRIPE_SECRET_KEY: ""
+          STRIPE_MONTHLY_PRICE_ID: ""
+          STRIPE_ANNUAL_PRICE_ID: ""
+          STRIPE_WEBHOOK_SECRET: ""
