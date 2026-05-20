@@ -35,7 +35,7 @@ export function DmSidebar({ previews }: Props) {
         {previews.map((dm) => (
           <button
             key={dm.id}
-            onClick={() => openDM(dm.userId)}
+            onClick={() => void openDM(dm.userId)}
             className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-white/5 ${
               activeDmUserId === dm.userId ? "bg-white/8" : ""
             }`}

@@ -6,9 +6,10 @@ Sleek, minimalist bio-link and social platform inspired by Discord and Haunt.gg.
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js 15 (App Router) + React 19 |
+| Frontend | Next.js 16 (App Router) + React 19 |
 | Styling | Tailwind CSS v4 |
 | Icons | Lucide-react |
+| Auth + Realtime DB | Supabase Auth + Postgres + Realtime |
 | Payments | Stripe |
 | Proxy | Caddy (automatic HTTPS) |
 | Deployment | VPS |
@@ -24,9 +25,20 @@ Sleek, minimalist bio-link and social platform inspired by Discord and Haunt.gg.
 
 ```bash
 cd apps/web
-cp .env.example .env.local   # fill in Stripe keys
+cp .env.example .env.local
 npm install
-npm run dev                  # http://localhost:3000
+```
+
+Then configure Supabase + schema:
+
+1. Create a Supabase project.
+2. Run `apps/web/db/schema.sql` in Supabase SQL editor.
+3. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to `.env.local`.
+
+Start dev server:
+
+```bash
+npm run dev
 ```
 
 ## Production (VPS + Caddy)

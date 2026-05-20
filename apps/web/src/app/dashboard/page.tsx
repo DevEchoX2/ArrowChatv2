@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
 import {
   GripVertical,
   Eye,
@@ -45,7 +46,7 @@ export default function DashboardPage() {
 
   const setLinks = useCallback(
     (updated: SocialLink[]) => {
-      updateUser({ socialLinks: updated.map((l, i) => ({ ...l, order: i })) });
+      void updateUser({ socialLinks: updated.map((l, i) => ({ ...l, order: i })) });
     },
     [updateUser]
   );
@@ -63,7 +64,16 @@ export default function DashboardPage() {
       links.map((l) => (l.id === id ? { ...l, [field]: value } : l))
     );
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="flex flex-1 items-center justify-center text-sm text-white/30">
+        <Link className="underline" href="/login">
+          Sign in
+        </Link>
+        <span className="ml-1">to edit your profile.</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 overflow-hidden">
@@ -95,7 +105,7 @@ export default function DashboardPage() {
               <label className="mb-1 block text-xs text-white/40">Bio</label>
               <textarea
                 value={user.bio ?? ""}
-                onChange={(e) => updateUser({ bio: e.target.value })}
+                onChange={(e) => void updateUser({ bio: e.target.value })}
                 rows={2}
                 className="w-full resize-none rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 outline-none focus:border-white/30"
               />
@@ -108,7 +118,7 @@ export default function DashboardPage() {
               </label>
               <input
                 value={user.displayName}
-                onChange={(e) => updateUser({ displayName: e.target.value })}
+                onChange={(e) => void updateUser({ displayName: e.target.value })}
                 className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 outline-none focus:border-white/30"
               />
             </div>
@@ -210,7 +220,7 @@ export default function DashboardPage() {
                   <input
                     value={user.profileTheme.customSubdomain ?? ""}
                     onChange={(e) =>
-                      updateUser({
+                      void updateUser({
                         profileTheme: {
                           ...user.profileTheme,
                           customSubdomain: e.target.value,

@@ -1,10 +1,22 @@
 "use client";
 
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { LogOut, Settings } from "lucide-react";
 
 export default function SettingsPage() {
   const { user, logout } = useAuth();
+
+  if (!user) {
+    return (
+      <div className="flex flex-1 items-center justify-center text-sm text-white/30">
+        <Link className="underline" href="/login">
+          Sign in
+        </Link>
+        <span className="ml-1">to manage settings.</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto p-6">
@@ -16,14 +28,12 @@ export default function SettingsPage() {
       <div className="max-w-md space-y-4">
         <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
           <p className="mb-1 text-xs text-white/40">Signed in as</p>
-          <p className="text-sm font-semibold text-white/80">
-            {user?.displayName}
-          </p>
-          <p className="text-xs text-white/30">@{user?.username}</p>
+          <p className="text-sm font-semibold text-white/80">{user.displayName}</p>
+          <p className="text-xs text-white/30">@{user.username}</p>
         </div>
 
         <button
-          onClick={logout}
+          onClick={() => void logout()}
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/60 transition hover:border-white/20 hover:text-white/90"
         >
           <LogOut size={15} />

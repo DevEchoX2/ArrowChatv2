@@ -1,11 +1,6 @@
-import { notFound } from "next/navigation";
-import { BioProfile } from "@/components/BioProfile";
-import { createServerSupabaseClient } from "@/lib/supabase";
+import { NextResponse } from "next/server";
 import { User } from "@/lib/types";
-
-interface Props {
-  params: Promise<{ username: string }>;
-}
+import { createServerSupabaseClient } from "@/lib/supabase";
 
 interface ProfileRow {
   id: string;
@@ -41,38 +36,22 @@ function mapProfile(row: ProfileRow): User {
   };
 }
 
-async function getProfileByUsername(username: string) {
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ username: string }> }
+) {
+  const { username } = await params;
   const supabase = createServerSupabaseClient();
+
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
     .eq("username", username)
     .single();
 
-  if (error || !data) return null;
-  return mapProfile(data as ProfileRow);
-}
+  if (error || !data) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
 
-export async function generateMetadata({ params }: Props) {
-  const { username } = await params;
-  const user = await getProfileByUsername(username);
-  if (!user) return { title: "User not found" };
-  return {
-    title: `${user.displayName} (@${user.username}) · ArrowChat`,
-    description: user.bio ?? "",
-  };
-}
-
-export default async function UserProfilePage({ params }: Props) {
-  const { username } = await params;
-  const user = await getProfileByUsername(username);
-  if (!user) notFound();
-
-  return (
-    <div className="flex flex-1 items-start justify-center overflow-y-auto px-4 py-12">
-      <div className="w-full max-w-sm">
-        <BioProfile user={user} />
-      </div>
-    </div>
-  );
+  return NextResponse.json({ user: mapProfile(data as ProfileRow) });
 }
