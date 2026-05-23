@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MessageSquare } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
@@ -60,7 +60,7 @@ export default function LoginPage() {
             }}
             className="flex w-full items-center justify-center gap-2 rounded-md border border-white/20 bg-[#5865F2]/20 px-3 py-2 text-sm text-white/90 transition hover:bg-[#5865F2]/30 disabled:opacity-40"
           >
-            <MessageSquare size={16} />
+            <LogIn size={16} />
             Continue with Discord
           </button>
 
