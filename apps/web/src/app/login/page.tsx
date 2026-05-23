@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, signup, isLoading, user } = useAuth();
+  const { login, signup, loginWithDiscord, isLoading, user } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,6 +46,32 @@ export default function LoginPage() {
         <p className="mt-1 text-xs text-white/40">Supabase authentication</p>
 
         <div className="mt-4 space-y-3">
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={async () => {
+              setError(null);
+              try {
+                await loginWithDiscord();
+              } catch (err) {
+                setError(
+                  err instanceof Error
+                    ? err.message
+                    : "Failed to sign in with Discord. Please try again."
+                );
+              }
+            }}
+            className="flex w-full items-center justify-center rounded-md border border-white/20 bg-[#5865F2]/20 px-3 py-2 text-sm text-white/90 transition hover:bg-[#5865F2]/30 disabled:opacity-40"
+          >
+            Continue with Discord
+          </button>
+
+          <div className="flex items-center gap-3 text-[10px] text-white/30">
+            <span className="h-px flex-1 bg-white/10" />
+            <span>or</span>
+            <span className="h-px flex-1 bg-white/10" />
+          </div>
+
           <input
             type="email"
             required
