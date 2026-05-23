@@ -28,6 +28,7 @@ interface AuthContextValue extends AuthState {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+const OAUTH_REDIRECT_PATH = "/";
 
 async function fetchMe(accessToken: string): Promise<User> {
   const res = await fetch("/api/profile/me", {
@@ -128,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "discord",
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: `${window.location.origin}${OAUTH_REDIRECT_PATH}`,
       },
     });
     if (error) {

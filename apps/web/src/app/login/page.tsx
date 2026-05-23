@@ -54,7 +54,11 @@ export default function LoginPage() {
               try {
                 await loginWithDiscord();
               } catch (err) {
-                setError(err instanceof Error ? err.message : "Discord sign-in failed");
+                setError(
+                  err instanceof Error
+                    ? err.message
+                    : "Failed to sign in with Discord. Please try again."
+                );
               }
             }}
             className="flex w-full items-center justify-center rounded-md border border-white/20 bg-[#5865F2]/20 px-3 py-2 text-sm text-white/90 transition hover:bg-[#5865F2]/30 disabled:opacity-40"
