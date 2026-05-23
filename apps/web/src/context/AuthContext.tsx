@@ -21,6 +21,7 @@ interface AuthState {
 interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
+  loginWithDiscord: () => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   updateUser: (partial: Partial<User>) => Promise<void>;
@@ -121,6 +122,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [supabase]
   );
 
+  const loginWithDiscord = useCallback(async () => {
+    if (!supabase) throw new Error("Supabase is not configured");
+    setState((s) => ({ ...s, isLoading: true }));
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "discord",
+      options: {
+        redirectTo: `${window.location.origin}/login`,
+      },
+    });
+    if (error) {
+      setState((s) => ({ ...s, isLoading: false }));
+      throw new Error(error.message);
+    }
+  }, [supabase]);
+
   const logout = useCallback(async () => {
     if (!supabase) return;
     await supabase.auth.signOut();
@@ -158,7 +174,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ ...state, login, signup, logout, refreshUser, updateUser }}
+      value={{
+        ...state,
+        login,
+        signup,
+        loginWithDiscord,
+        logout,
+        refreshUser,
+        updateUser,
+      }}
     >
       {children}
     </AuthContext.Provider>
