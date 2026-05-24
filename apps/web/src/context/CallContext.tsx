@@ -66,6 +66,8 @@ const ICE_SERVERS: RTCIceServer[] = [
 const SIGNAL_CHANNEL = "call-signaling";
 const DEFAULT_CALLER_NAME = "Unknown";
 const DEFAULT_CALLER_USERNAME = "user";
+const DEFAULT_CALLER_TIER: UserTier = "free";
+const MAX_PENDING_ICE = 50;
 
 function createCallId() {
   if (typeof globalThis.crypto !== "undefined" && "randomUUID" in globalThis.crypto) {
@@ -383,7 +385,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
           displayName: data.fromDisplayName ?? data.fromUsername ?? DEFAULT_CALLER_NAME,
           username: data.fromUsername ?? DEFAULT_CALLER_USERNAME,
           avatarUrl: data.fromAvatarUrl ?? undefined,
-          tier: data.fromTier ?? "free",
+          tier: data.fromTier ?? DEFAULT_CALLER_TIER,
           isOnline: data.fromIsOnline ?? true,
         });
         setStatus("incoming");
@@ -410,6 +412,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
         const pc = peerConnectionRef.current;
         if (!pc) return;
         if (!pc.remoteDescription) {
+          if (pendingIceRef.current.length >= MAX_PENDING_ICE) {
+            pendingIceRef.current.shift();
+          }
           pendingIceRef.current.push(data.candidate);
           return;
         }

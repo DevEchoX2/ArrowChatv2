@@ -28,6 +28,15 @@ export default function DirectMessagesPage() {
   const activeDm = dmPreviews.find((u) => u.userId === activeDmUserId);
   const messages = activeDmUserId ? (dmMessages[activeDmUserId] ?? []) : [];
   const callDisabled = callStatus !== "idle";
+  const callPeer = activeDm
+    ? {
+        userId: activeDm.userId,
+        displayName: activeDm.displayName,
+        username: activeDm.username,
+        avatarUrl: activeDm.avatarUrl,
+        isOnline: activeDm.isOnline,
+      }
+    : null;
 
   return (
     <div className="flex flex-1 overflow-hidden">
@@ -43,18 +52,7 @@ export default function DirectMessagesPage() {
             <span className="text-[11px] text-white/30">@{activeDm.username}</span>
             <div className="ml-auto flex items-center gap-2">
               <button
-                onClick={() =>
-                  void startCall(
-                    {
-                      userId: activeDm.userId,
-                      displayName: activeDm.displayName,
-                      username: activeDm.username,
-                      avatarUrl: activeDm.avatarUrl,
-                      isOnline: activeDm.isOnline,
-                    },
-                    "audio"
-                  )
-                }
+                onClick={() => callPeer && void startCall(callPeer, "audio")}
                 disabled={callDisabled}
                 className={`flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-widest ${
                   callDisabled
@@ -67,18 +65,7 @@ export default function DirectMessagesPage() {
                 Call
               </button>
               <button
-                onClick={() =>
-                  void startCall(
-                    {
-                      userId: activeDm.userId,
-                      displayName: activeDm.displayName,
-                      username: activeDm.username,
-                      avatarUrl: activeDm.avatarUrl,
-                      isOnline: activeDm.isOnline,
-                    },
-                    "video"
-                  )
-                }
+                onClick={() => callPeer && void startCall(callPeer, "video")}
                 disabled={callDisabled}
                 className={`flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-widest ${
                   callDisabled
