@@ -5,12 +5,14 @@ import { DmSidebar } from "@/components/DmSidebar";
 import { MessageList } from "@/components/MessageList";
 import { ChatInput } from "@/components/ChatInput";
 import { useChat } from "@/context/ChatContext";
-import { Mail } from "lucide-react";
+import { useCall } from "@/context/CallContext";
+import { Mail, Phone, Video } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function DirectMessagesPage() {
   const { user } = useAuth();
   const { dmPreviews, activeDmUserId, dmMessages, sendDM } = useChat();
+  const { status: callStatus, startCall } = useCall();
 
   if (!user) {
     return (
@@ -25,6 +27,7 @@ export default function DirectMessagesPage() {
 
   const activeDm = dmPreviews.find((u) => u.userId === activeDmUserId);
   const messages = activeDmUserId ? (dmMessages[activeDmUserId] ?? []) : [];
+  const callDisabled = callStatus !== "idle";
 
   return (
     <div className="flex flex-1 overflow-hidden">
@@ -38,6 +41,54 @@ export default function DirectMessagesPage() {
               {activeDm.displayName}
             </h2>
             <span className="text-[11px] text-white/30">@{activeDm.username}</span>
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={() =>
+                  void startCall(
+                    {
+                      userId: activeDm.userId,
+                      displayName: activeDm.displayName,
+                      username: activeDm.username,
+                      avatarUrl: activeDm.avatarUrl,
+                    },
+                    "audio"
+                  )
+                }
+                disabled={callDisabled}
+                className={`flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-widest ${
+                  callDisabled
+                    ? "border-white/5 bg-white/5 text-white/30"
+                    : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+                }`}
+                aria-label="Start audio call"
+              >
+                <Phone size={12} />
+                Call
+              </button>
+              <button
+                onClick={() =>
+                  void startCall(
+                    {
+                      userId: activeDm.userId,
+                      displayName: activeDm.displayName,
+                      username: activeDm.username,
+                      avatarUrl: activeDm.avatarUrl,
+                    },
+                    "video"
+                  )
+                }
+                disabled={callDisabled}
+                className={`flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-widest ${
+                  callDisabled
+                    ? "border-white/5 bg-white/5 text-white/30"
+                    : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+                }`}
+                aria-label="Start video call"
+              >
+                <Video size={12} />
+                Video
+              </button>
+            </div>
           </header>
 
           <MessageList messages={messages} />
