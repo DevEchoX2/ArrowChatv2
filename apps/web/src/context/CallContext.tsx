@@ -167,10 +167,14 @@ export function CallProvider({ children }: { children: ReactNode }) {
         sendSignal("call:ice", { callId, to: peerId, from, candidate });
       };
       pc.ontrack = (event) => {
-        const stream =
-          event.streams?.[0] ??
-          new MediaStream(event.track ? [event.track] : undefined);
-        setRemoteStream(stream);
+        const stream = event.streams?.[0];
+        if (stream) {
+          setRemoteStream(stream);
+          return;
+        }
+        const fallback = new MediaStream();
+        if (event.track) fallback.addTrack(event.track);
+        setRemoteStream(fallback);
       };
       pc.onconnectionstatechange = () => {
         if (pc.connectionState === "connected") {
