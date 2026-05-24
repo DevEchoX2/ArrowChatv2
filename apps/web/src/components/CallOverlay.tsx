@@ -81,8 +81,8 @@ export function CallOverlay() {
             user={{
               displayName: peer.displayName,
               avatarUrl: peer.avatarUrl,
-              tier: "free",
-              isOnline: true,
+              tier: peer.tier ?? "free",
+              isOnline: peer.isOnline ?? true,
             }}
             size="lg"
           />
@@ -131,8 +131,8 @@ export function CallOverlay() {
                 user={{
                   displayName: peer.displayName,
                   avatarUrl: peer.avatarUrl,
-                  tier: "free",
-                  isOnline: true,
+                  tier: peer.tier ?? "free",
+                  isOnline: peer.isOnline ?? true,
                 }}
                 size="lg"
               />

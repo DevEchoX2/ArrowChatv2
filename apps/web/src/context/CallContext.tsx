@@ -11,6 +11,7 @@ import React, {
 } from "react";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
+import { UserTier } from "@/lib/types";
 import { useAuth } from "./AuthContext";
 
 export type CallMode = "audio" | "video";
@@ -21,6 +22,8 @@ export interface CallPeer {
   displayName: string;
   username?: string;
   avatarUrl?: string;
+  tier?: UserTier;
+  isOnline?: boolean;
 }
 
 interface CallContextValue {
@@ -49,6 +52,8 @@ interface CallSignalPayload {
   fromDisplayName?: string;
   fromUsername?: string;
   fromAvatarUrl?: string | null;
+  fromTier?: UserTier;
+  fromIsOnline?: boolean;
 }
 
 const CallContext = createContext<CallContextValue | null>(null);
@@ -59,6 +64,8 @@ const ICE_SERVERS: RTCIceServer[] = [
 ];
 
 const SIGNAL_CHANNEL = "call-signaling";
+const DEFAULT_CALLER_NAME = "Unknown";
+const DEFAULT_CALLER_USERNAME = "user";
 
 function createCallId() {
   if (typeof globalThis.crypto !== "undefined" && "randomUUID" in globalThis.crypto) {
@@ -195,7 +202,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
 
   const ensureMediaAccess = useCallback(async (withVideo: boolean) => {
     if (!navigator.mediaDevices?.getUserMedia) {
-      throw new Error("Media devices are not available in this browser.");
+      throw new Error(
+        "Media devices are not available. Use HTTPS or localhost and grant permissions."
+      );
     }
     return navigator.mediaDevices.getUserMedia({ audio: true, video: withVideo });
   }, []);
@@ -249,6 +258,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
           fromDisplayName: user.displayName,
           fromUsername: user.username,
           fromAvatarUrl: user.avatarUrl ?? null,
+          fromTier: user.tier,
+          fromIsOnline: user.isOnline,
         });
       } catch (error) {
         console.error("Failed to start call", error);
@@ -369,9 +380,11 @@ export function CallProvider({ children }: { children: ReactNode }) {
         setMode(data.mode ?? "audio");
         setPeer({
           userId: data.from,
-          displayName: data.fromDisplayName ?? data.fromUsername ?? "Unknown",
-          username: data.fromUsername ?? "user",
+          displayName: data.fromDisplayName ?? data.fromUsername ?? DEFAULT_CALLER_NAME,
+          username: data.fromUsername ?? DEFAULT_CALLER_USERNAME,
           avatarUrl: data.fromAvatarUrl ?? undefined,
+          tier: data.fromTier ?? "free",
+          isOnline: data.fromIsOnline ?? true,
         });
         setStatus("incoming");
       })

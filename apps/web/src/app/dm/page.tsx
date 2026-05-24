@@ -50,6 +50,7 @@ export default function DirectMessagesPage() {
                       displayName: activeDm.displayName,
                       username: activeDm.username,
                       avatarUrl: activeDm.avatarUrl,
+                      isOnline: activeDm.isOnline,
                     },
                     "audio"
                   )
@@ -73,6 +74,7 @@ export default function DirectMessagesPage() {
                       displayName: activeDm.displayName,
                       username: activeDm.username,
                       avatarUrl: activeDm.avatarUrl,
+                      isOnline: activeDm.isOnline,
                     },
                     "video"
                   )
