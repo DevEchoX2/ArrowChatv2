@@ -21,6 +21,11 @@ Run `db/schema.sql` in Supabase SQL editor to create:
 - auth user profile bootstrap trigger
 - realtime publication for `messages`
 
+## Calls
+
+Audio/video calling uses WebRTC with Supabase Realtime broadcast signaling. Calls require
+HTTPS (or localhost) for microphone/camera access; no additional database schema is needed.
+
 ## Scripts
 
 - `npm run dev`
