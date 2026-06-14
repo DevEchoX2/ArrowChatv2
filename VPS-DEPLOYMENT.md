@@ -9,7 +9,6 @@ This guide explains how to deploy `ArrowChatv2` on a VPS using Node.js and Caddy
 - Access to the VPS via SSH
 - GitHub repo: `https://github.com/DevEchoX2/ArrowChatv2`
 - Supabase project ready
-- Optional: Stripe account and keys
 
 ## 1. Install system dependencies
 
@@ -74,15 +73,6 @@ Edit `apps/web/.env.local` with the correct values.
   `https://qmuiolfeymjeqyxsxczw.supabase.co`
   - Do not include `/rest/v1/`.
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` should be the public anon key.
-
-### Stripe values
-
-- `STRIPE_SECRET_KEY`
-- `STRIPE_MONTHLY_PRICE_ID`
-- `STRIPE_ANNUAL_PRICE_ID`
-- `STRIPE_WEBHOOK_SECRET`
-
-If you do not use Stripe yet, leave the Stripe values blank for now.
 
 ## 7. Build the app
 
